@@ -1,23 +1,18 @@
 module Main where
 
-import GameLib
-import GameBoard
+import SpaceInvaders
 
-import Graphics.Gloss
-import Graphics.Gloss.Data.ViewPort
-import Graphics.Gloss.Interface.IO.Game
-
+import Graphics.Gloss (play)
 
 main :: IO ()
 main = do
-  library <- loadLibrary
+  imageLibrary <- loadLibrary
+  let gameState = mkInitialState imageLibrary
   play
-    window -- ^ game window
-    background -- ^ game background color
-    fps -- ^ frame per second
-    (initialState library) -- ^ initial game state
-                           -- ^ passing an argument make the same function with an argument fixed
-                           -- ^ initialState :: Library -> Game is transformed in initialState :: Game
-    renderGame -- ^ render functionn
-    handleKeys -- ^ handleKeys function
-    update  -- ^ update function
+    window     -- Specification of game window       :: Window
+    background -- Background color                   :: Color
+    fps        -- Frames per second                  :: Int
+    gameState  -- Initial game state                 :: Game
+    renderGame -- Rendering function                 :: Game -> Picture
+    handleKeys -- Key handling function              :: Event -> Game -> Game
+    update     -- State update function              :: Float -> Game -> Game
