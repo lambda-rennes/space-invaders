@@ -1,12 +1,12 @@
 module ImageLibrary
-  ( Library(..)
+  ( ImageLibrary(..)
   , loadLibrary
   ) where
 
 import Graphics.Gloss
 
 -- | Image library
-data Library = Library
+data ImageLibrary = ImageLibrary
   { backgroundImg :: Picture
   , spaceshipImg :: Picture
   , monster1Img :: Picture
@@ -14,14 +14,13 @@ data Library = Library
 
 -- | Load image library. For simplicity's sake, this function assumes that the
 -- game is run from the root project directory.
-loadLibrary :: IO Library
+loadLibrary :: IO ImageLibrary
 loadLibrary = do
-  backgroundImg <- loadBMP "./library/galaxy-2643089_960_720.bmp"
-  spaceshipImg <- loadBMP "./library/spaceship_resized2.bmp"
-  monster1Img <- loadBMP "./library/monster1_resized.bmp"
-  return
-    Library
-      { backgroundImg = backgroundImg
-      , spaceshipImg = spaceshipImg
-      , monster1Img = monster1Img
+  backgroundImg <- loadBMP "./assets/images/galaxy-2643089_960_720.bmp"
+  spaceshipImg <- loadBMP "./assets/images/spaceship_resized2.bmp"
+  monster1Img <- loadBMP "./assets/images/monster1_resized.bmp"
+  return $ ImageLibrary
+    { backgroundImg = backgroundImg
+    , spaceshipImg = spaceshipImg
+    , monster1Img = monster1Img
       }

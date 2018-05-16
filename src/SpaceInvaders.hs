@@ -18,7 +18,7 @@ import Window
 
 -- | Game type
 newtype Game = Game
-  { library :: Library
+  { library :: ImageLibrary
   }
 
 -- | spaceship
@@ -28,7 +28,7 @@ newtype Spaceship = Spaceship
 
 -- | Create the initial game state from an image library.
 mkInitialState
-  :: Library -- ^ Image library
+  :: ImageLibrary -- ^ Image library
   -> Game    -- ^ Initial game state
 mkInitialState l = Game
   { library = l -- Set the game image library as the argument.
@@ -75,13 +75,13 @@ renderGame game = Gloss.pictures
 
 -- | Render the background image.
 renderBackground
-  :: Library -- ^ Image library
+  :: ImageLibrary -- ^ Image library
   -> Gloss.Picture -- ^ Background picture
 renderBackground library = backgroundImg library
 
 -- | Render the spaceship.
 renderSpaceship
-  :: Library -- ^ Image library
+  :: ImageLibrary -- ^ Image library
   -> (Float, Float) -- ^ Current spaceship (x,y) position
   -> Gloss.Picture -- ^ Picture of the spaceship
 renderSpaceship library (x, y) =
@@ -91,7 +91,7 @@ renderSpaceship library (x, y) =
 
 -- | Render a monster
 renderMonster
-  :: Library -- ^ Image library
+  :: ImageLibrary -- ^ Image library
   -> (Float, Float) -- ^ Monster (x,y) position
   -> Gloss.Picture -- ^ Picture of the monster
 renderMonster library (x, y) =
@@ -103,7 +103,7 @@ renderMonster library (x, y) =
 
 -- | Render multiple monsters in one go.
 renderMonsters
-  :: Library
+  :: ImageLibrary
   -> [(Float, Float)] -- ^ Monster positions.
   -> Gloss.Picture -- ^ Collage picture with all monsters represented.
 renderMonsters = undefined
