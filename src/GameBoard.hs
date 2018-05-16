@@ -1,9 +1,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module GameBoard
-  ( Game
+  ( Game(..)
+  , Library(..)
   , handleKeys
-  , loadLibrary
   , renderGame
   , initialState
   , update
@@ -11,8 +11,6 @@ module GameBoard
 
 import Graphics.Gloss
 import Graphics.Gloss.Interface.Pure.Game
-import Lib
-
 
 -- *********************** LIBRARY *******************************
 

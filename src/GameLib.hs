@@ -1,11 +1,14 @@
-module Lib
-    ( loadLibrary
+module GameLib
+    ( background
+    , loadLibrary
     , window
     , fps
+    , module GameBoard
     ) where
 
 
 import GameBoard
+import Graphics.Gloss
 
 -- | load library
 loadLibrary :: IO Library
