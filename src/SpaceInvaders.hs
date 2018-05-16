@@ -1,17 +1,16 @@
 module SpaceInvaders
-    ( Game(..)
+    ( Game
+    , ImageLibrary(..)
     , mkInitialState
     , renderGame
     , handleKeys
     , update
       -- Re-exports.
-    , module ImageLibrary
     , module Window
     ) where
 
 import qualified Graphics.Gloss as Gloss
 import qualified Graphics.Gloss.Interface.Pure.Game as Gloss
-import ImageLibrary
 import Window
 
 -- *********************** Game state ****************************
@@ -19,6 +18,13 @@ import Window
 -- | Game type
 newtype Game = Game
   { library :: ImageLibrary
+  }
+
+-- | Image library
+data ImageLibrary = ImageLibrary
+  { backgroundImg :: Gloss.Picture
+  , spaceshipImg :: Gloss.Picture
+  , monster1Img :: Gloss.Picture
   }
 
 -- | spaceship
