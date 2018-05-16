@@ -113,8 +113,7 @@ renderMonsters
   -> [(Float, Float)] -- ^ Monster positions.
   -> Gloss.Picture -- ^ Collage picture with all monsters represented.
 renderMonsters = undefined
--- Hint: use
-
+-- Hint: think fmap, think currying !
 
 -- | Render score
 renderScores
