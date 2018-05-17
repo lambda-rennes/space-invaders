@@ -18,7 +18,7 @@ As it is, the code compiles and displays:
 The game is entirely static and does not respond to user input. Your are asked
 to fill in the blanks and implement the missing features.
 
-### TASK 1: Render spaceship and monsters from game state
+### TASK 1: Move spaceship and monsters to `Game`
 
 Current status: the rendering function displays a single monster at a fixed
 position, irrelevant of the game state. The same holds for the spaceship.
@@ -42,11 +42,15 @@ When a missile hits a monster, both should be destroyed.
 
 ### TASK 5: Scoring
 
-Keep track of and render the player's score.
+Keep track of and render the player's score. Each monster should give 10 points.
 
 ### TASK 6: Invasion
 
-Monsters should move downwards row-by-row.
+Monsters should move downwards, row-by-row, every few seconds.
+
+### TASK 7: Death
+
+A collision between the spaceship and a monster should end the game
 
 ## Project structure
 
@@ -72,3 +76,6 @@ To run the program, type:
 ```
 stack exec space-invaders
 ```
+
+
+Have fun !!
