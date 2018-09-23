@@ -3,7 +3,7 @@ module SpaceInvaders
     , ImageLibrary(..)
     , mkInitialState
     , renderGame
-    , handleKeys
+    , handleKeysIO
     , update
       -- Re-exports.
     , module Window
@@ -59,9 +59,9 @@ mkInitialState l = Game
 update
   :: Float -- ^ Time passed since last update (in seconds)
   -> Game -- ^ Current game state
-  -> Game -- ^ Updated game state.
+  -> IO Game -- ^ Updated game state.
 -- Game playing
-update seconds game =
+update _ game = return $
   moveMonsters game
 
 move
@@ -107,6 +107,12 @@ getLowestPosition = foldr minPos 3000
 
 -- *********************** Key handling ************************
 
+handleKeysIO
+  :: Gloss.Event
+  -> Game
+  -> IO Game
+handleKeysIO e g = return $
+  handleKeys e g
 
 -- | Modify 'Game' state based on key events.
 handleKeys

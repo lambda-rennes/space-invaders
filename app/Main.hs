@@ -2,7 +2,8 @@ module Main where
 
 import SpaceInvaders
 
-import Graphics.Gloss (loadBMP, play)
+import Graphics.Gloss (loadBMP)
+import Graphics.Gloss.Interface.IO.Game (playIO)
 
 -- | Load image library. For simplicity's sake, this function assumes that the
 -- game is run from the root project directory.
@@ -21,11 +22,11 @@ main :: IO ()
 main = do
   imageLibrary <- loadLibrary
   let gameState = mkInitialState imageLibrary
-  play
+  playIO
     window     -- Specification of game window       :: Window
     background -- Background color                   :: Color
     fps        -- Frames per second                  :: Int
     gameState  -- Initial game state                 :: Game
-    renderGame -- Rendering function                 :: Game -> Picture
-    handleKeys -- Key handling function              :: Event -> Game -> Game
+    (return . renderGame) -- Rendering function :: Game -> Picture
+    handleKeysIO -- Key handling function              :: Event -> Game -> Game
     update     -- State update function              :: Float -> Game -> Game
