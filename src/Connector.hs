@@ -9,18 +9,7 @@ import Data.Map (Map)
 import Data.BERT
 import Network.BERT.Transport
 
-data Message
-  = Position Float
-
-instance BERT Message where
-  showBERT msg = case msg of
-    Position pos -> showBERT ("position", pos)
-
-  readBERT t = do
-    (tag, payload) <- readBERT t
-    case tag of
-      "position" -> Position <$> readBERT payload
-      _ -> Left $ "Unexpected tag: " ++ tag
+import Message
 
 type PlayerID = String
 type Position = Float
