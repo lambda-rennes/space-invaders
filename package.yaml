@@ -21,7 +21,11 @@ description:         Please see the README on GitHub at <https://github.com/akhe
 
 dependencies:
 - base >= 4.7 && < 5
+- bert
+- containers
 - gloss
+- network-simple
+- stm
 
 library:
   source-dirs: src

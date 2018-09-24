@@ -9,11 +9,21 @@ module SpaceInvaders
     , module Window
     ) where
 
+import Control.Concurrent.MVar
 import qualified Graphics.Gloss as Gloss
 import qualified Graphics.Gloss.Interface.Pure.Game as Gloss
+import qualified Data.Map as Map
+import Data.Map (Map)
+
 import Window
 
+type PlayerID = String
+
 -- *********************** Game state ****************************
+
+-- XXX: Now that we use the IO interface, we should move to a 'ReaderT _ IO'
+-- pattern for the various handlers and remove the game library and players map
+-- from the game state.
 
 -- | Game type
 data Game = Game
@@ -21,6 +31,7 @@ data Game = Game
   , spaceship :: Position
   , monsters :: [Position]
   , mDirection :: Direction
+  , otherPlayers :: MVar (Map PlayerID Position)
   }
 
 -- | Image library
@@ -40,18 +51,22 @@ data Direction = Up | Down
 generateMonstersPosition
   :: [Position]
 generateMonstersPosition =
-  [(i*100,j*100) | i <- [-3..3],
-         j <- [0..3] ]
+  [ (i*100,j*100)
+  | i <- [-3..3],
+    j <- [0..3] ]
 
 mkInitialState
   :: ImageLibrary -- ^ Image library
-  -> Game    -- ^ Initial game state
-mkInitialState l = Game
-  { library = l -- Set the game image library as the argument.
-  , spaceship = (0, -250)
-  , monsters = generateMonstersPosition
-  , mDirection = Down
-  }
+  -> IO Game    -- ^ Initial game state
+mkInitialState l = do
+  playersMap <- newMVar Map.empty
+  return $ Game
+    { library = l -- Set the game image library as the argument.
+    , spaceship = (0, -250)
+    , monsters = generateMonstersPosition
+    , mDirection = Down
+    , otherPlayers = playersMap
+    }
 
 -- *********************** Updating game ************************
 

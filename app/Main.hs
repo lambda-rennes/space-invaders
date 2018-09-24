@@ -21,7 +21,7 @@ loadLibrary = do
 main :: IO ()
 main = do
   imageLibrary <- loadLibrary
-  let gameState = mkInitialState imageLibrary
+  gameState <- mkInitialState imageLibrary
   playIO
     window     -- Specification of game window       :: Window
     background -- Background color                   :: Color
