@@ -129,24 +129,15 @@ handleKeysIO
   :: Gloss.Event
   -> Game
   -> IO Game
-handleKeysIO e g = do
-  let game = handleKeys e g
-  _ <- (sendMessage (connector game)) (NewPosition $ fst (spaceship game))
-  return game
-
-
--- | Modify 'Game' state based on key events.
-handleKeys
-  :: Gloss.Event -- ^ keyEvent
-  -> Game -- ^ current game state
-  -> Game -- ^ Game updated
-handleKeys (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyLeft) Gloss.Down _ _) game =
-  (moveSpaceship (-10) game)
-handleKeys (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyRight) Gloss.Down _ _) game =
-  moveSpaceship 10 game
-handleKeys _ game = game
-
-
+handleKeysIO (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyLeft) Gloss.Down _ _) game = do
+  let newGame = (moveSpaceship (-10) game)
+  _ <- (sendMessage (connector newGame)) (NewPosition $ fst (spaceship newGame))
+  return newGame
+handleKeysIO (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyRight) Gloss.Down _ _) game = do
+  let newGame = moveSpaceship 10 game
+  _ <- (sendMessage (connector newGame)) (NewPosition $ fst (spaceship newGame))
+  return newGame
+handleKeysIO _ game = return game
 
 
 -- Hint: pattern-match on event key parameter (see Gloss documentation).
