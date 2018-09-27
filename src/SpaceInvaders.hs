@@ -60,7 +60,7 @@ mkInitialState
   :: ImageLibrary -- ^ Image library
   -> IO Game    -- ^ Initial game state
 mkInitialState l = do
-  playersMap <- newMVar Map.empty
+  playersMap <- newMVar $ Map.fromList [("A", 100), ("B", 300)]
   con <- startConnector "11" playersMap
   return $ Game
     { library = l -- Set the game image library as the argument.
@@ -147,12 +147,15 @@ handleKeysIO _ game = return game
 -- | Render the 'Game' into a displayable 'Gloss.Picture'.
 renderGame
   :: Game -- ^ The game state to render
-  -> Gloss.Picture -- ^ A picture of this game state
-renderGame game = Gloss.pictures
-  [ renderBackground (library game)
-  , renderSpaceship (library game) (spaceship game)
-  , renderMonsters (library game) (monsters game)
-  ]
+  -> IO Gloss.Picture -- ^ A picture of this game state
+renderGame game =  do
+  pweet <- readMVar $ otherPlayers game
+  return $ Gloss.pictures
+    [ renderBackground (library game)
+    , renderOtherPlayers (library game) (connectorsToPositions (Map.toList pweet))
+    , renderSpaceship (library game) (spaceship game)
+    , renderMonsters (library game) (monsters game)
+    ]
 
 -- | Render the background image.
 renderBackground
@@ -168,7 +171,10 @@ renderSpaceship
 renderSpaceship library (x, y) =
   -- The picture of the spaceship is the corresponding library sprite translated
   -- by the spaceship coordinates.
-  Gloss.translate x y $ spaceshipImg library
+  Gloss.pictures [spaceship, mark]
+  where
+    spaceship = Gloss.translate x y $ spaceshipImg library
+    mark = Gloss.color Gloss.red $ Gloss.translate x y $ Gloss.circleSolid 10
 
 -- | Render a monster
 renderMonster
@@ -196,3 +202,32 @@ renderScores
   -> Gloss.Picture
 renderScores = undefined
 -- Hint : Use 'renderText' from Gloss.
+
+
+connectorsToPositions
+  :: [(PlayerID, XPosition)]
+  -> [Position]
+connectorsToPositions = fmap connectorToPosition
+
+connectorToPosition
+  :: (PlayerID, XPosition)
+  -> Position
+connectorToPosition (_, x) = (x, -250)
+
+-- | Render other players spaceships
+renderOtherPlayers
+  :: ImageLibrary -- ^ Image library
+  -> [Position]
+  -> Gloss.Picture
+renderOtherPlayers imageLib otherPlayers = Gloss.pictures (fmap (renderOtherPlayer imageLib) otherPlayers)
+
+-- | Render other player spaceship
+renderOtherPlayer
+  :: ImageLibrary -- ^ Image library
+  -> Position
+  -> Gloss.Picture
+renderOtherPlayer library (x, y) = Gloss.translate x y $ spaceshipImg library
+
+--[(PlayerID, XPosition)] -> [xPosition]
+--[xPosition] -> [Position]
+--[Position] -> Gloss.Picture

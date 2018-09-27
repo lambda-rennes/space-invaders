@@ -27,6 +27,6 @@ main = do
     background -- Background color                   :: Color
     fps        -- Frames per second                  :: Int
     gameState  -- Initial game state                 :: Game
-    (return . renderGame) -- Rendering function :: Game -> Picture
+    renderGame -- Rendering function :: Game -> Picture
     handleKeysIO -- Key handling function              :: Event -> Game -> Game
     update     -- State update function              :: Float -> Game -> Game
