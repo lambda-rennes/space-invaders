@@ -1,3 +1,6 @@
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE TypeApplications #-}
+
 module Message
   ( Message(..)
   ) where
@@ -5,15 +8,17 @@ module Message
 import Data.BERT
 
 data Message
-  = Position Float
+  = NewPosition Float
 
 instance BERT Message where
+
+  showBERT :: Message -> Term
   showBERT msg = case msg of
-    Position pos -> showBERT ("position", pos)
+    NewPosition pos -> showBERT ("position", pos)
 
+  readBERT :: Term -> Either String Message
   readBERT t = do
-    (tag, payload) <- readBERT t
+    (tag, payload) <- readBERT @(String, Term) t
     case tag of
-      "position" -> Position <$> readBERT payload
+      "newpos" -> NewPosition <$> readBERT @Float payload
       _ -> Left $ "Unexpected tag: " ++ tag
-

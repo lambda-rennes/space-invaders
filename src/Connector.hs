@@ -1,4 +1,9 @@
-module Connector where
+module Connector
+  ( PlayerID
+  , XPosition
+  , Connector(sendMessage)
+  , startConnector
+  ) where
 
 import Control.Concurrent
 import Control.Concurrent.STM
@@ -12,7 +17,7 @@ import Network.BERT.Transport
 import Message
 
 type PlayerID = String
-type Position = Float
+type XPosition = Float
 
 data Connector = Connector
   { sendMessage :: Message -> IO ()
@@ -20,7 +25,7 @@ data Connector = Connector
 
 startConnector
   :: PlayerID -- ^ PlayerID
-  -> MVar (Map PlayerID Position)
+  -> MVar (Map PlayerID XPosition)
   -> IO Connector
 startConnector playerId playersMap = do
   tcp <- tcpClient "localhost" 7777
@@ -32,14 +37,14 @@ startConnector playerId playersMap = do
     atomically . writeTChan chan
 
 receiveThread
-  :: MVar (Map PlayerID Position)
+  :: MVar (Map PlayerID XPosition)
   -> TransportM ()
 receiveThread playersMap = recvtForever $ \t ->
   case readBERT t of
     Left err -> liftIO $ putStrLn err
     Right (player, msg) ->
       case msg of
-        Position pos -> liftIO $ modifyMVar_ playersMap $
+        NewPosition pos -> liftIO $ modifyMVar_ playersMap $
           return . Map.insert player pos
 
 sendThread

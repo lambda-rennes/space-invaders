@@ -9,6 +9,8 @@ module SpaceInvaders
     , module Window
     ) where
 
+import Connector
+import Message
 import Control.Concurrent.MVar
 import qualified Graphics.Gloss as Gloss
 import qualified Graphics.Gloss.Interface.Pure.Game as Gloss
@@ -16,8 +18,6 @@ import qualified Data.Map as Map
 import Data.Map (Map)
 
 import Window
-
-type PlayerID = String
 
 -- *********************** Game state ****************************
 
@@ -31,7 +31,8 @@ data Game = Game
   , spaceship :: Position
   , monsters :: [Position]
   , mDirection :: Direction
-  , otherPlayers :: MVar (Map PlayerID Position)
+  , otherPlayers :: MVar (Map PlayerID XPosition)
+  , connector :: Connector
   }
 
 -- | Image library
@@ -60,12 +61,14 @@ mkInitialState
   -> IO Game    -- ^ Initial game state
 mkInitialState l = do
   playersMap <- newMVar Map.empty
+  con <- startConnector "11" playersMap
   return $ Game
     { library = l -- Set the game image library as the argument.
     , spaceship = (0, -250)
     , monsters = generateMonstersPosition
     , mDirection = Down
     , otherPlayers = playersMap
+    , connector = con
     }
 
 -- *********************** Updating game ************************
@@ -126,17 +129,25 @@ handleKeysIO
   :: Gloss.Event
   -> Game
   -> IO Game
-handleKeysIO e g = return $
-  handleKeys e g
+handleKeysIO e g = do
+  let game = handleKeys e g
+  _ <- (sendMessage (connector game)) (NewPosition $ fst (spaceship game))
+  return game
+
 
 -- | Modify 'Game' state based on key events.
 handleKeys
   :: Gloss.Event -- ^ keyEvent
   -> Game -- ^ current game state
   -> Game -- ^ Game updated
-handleKeys (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyLeft) Gloss.Down _ _) game = moveSpaceship (-10) game
-handleKeys (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyRight) Gloss.Down _ _) game = moveSpaceship 10 game
+handleKeys (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyLeft) Gloss.Down _ _) game =
+  (moveSpaceship (-10) game)
+handleKeys (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyRight) Gloss.Down _ _) game =
+  moveSpaceship 10 game
 handleKeys _ game = game
+
+
+
 
 -- Hint: pattern-match on event key parameter (see Gloss documentation).
 
