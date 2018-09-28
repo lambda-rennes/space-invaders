@@ -14,7 +14,7 @@ instance BERT Message where
 
   showBERT :: Message -> Term
   showBERT msg = case msg of
-    NewPosition pos -> showBERT ("position", pos)
+    NewPosition pos -> showBERT ("newpos", pos)
 
   readBERT :: Term -> Either String Message
   readBERT t = do
