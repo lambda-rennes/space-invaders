@@ -5,6 +5,8 @@ import SpaceInvaders
 import Graphics.Gloss (loadBMP)
 import Graphics.Gloss.Interface.IO.Game (playIO)
 
+import System.Environment (getArgs)
+
 -- | Load image library. For simplicity's sake, this function assumes that the
 -- game is run from the root project directory.
 loadLibrary :: IO ImageLibrary
@@ -20,8 +22,9 @@ loadLibrary = do
 
 main :: IO ()
 main = do
+  playerId:_ <- getArgs
   imageLibrary <- loadLibrary
-  gameState <- mkInitialState imageLibrary
+  gameState <- mkInitialState imageLibrary playerId
   playIO
     window     -- Specification of game window       :: Window
     background -- Background color                   :: Color

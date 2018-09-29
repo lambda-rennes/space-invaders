@@ -58,10 +58,11 @@ generateMonstersPosition =
 
 mkInitialState
   :: ImageLibrary -- ^ Image library
+  -> PlayerID
   -> IO Game    -- ^ Initial game state
-mkInitialState l = do
+mkInitialState l playerId = do
   playersMap <- newMVar $ Map.fromList [("A", 100), ("B", 300)]
-  con <- startConnector "11" playersMap
+  con <- startConnector playerId playersMap
   return $ Game
     { library = l -- Set the game image library as the argument.
     , spaceship = (0, -250)
