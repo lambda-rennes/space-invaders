@@ -61,7 +61,7 @@ mkInitialState
   -> PlayerID
   -> IO Game    -- ^ Initial game state
 mkInitialState l playerId = do
-  playersMap <- newMVar $ Map.fromList [("A", 100), ("B", 300)]
+  playersMap <- newMVar $ Map.empty
   con <- startConnector playerId playersMap
   return $ Game
     { library = l -- Set the game image library as the argument.
