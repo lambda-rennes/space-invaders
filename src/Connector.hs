@@ -9,6 +9,7 @@ import Control.Concurrent
 import Control.Concurrent.STM
 import Control.Monad (forever)
 import Control.Monad.IO.Class (liftIO)
+import Data.Binary (decode)
 import qualified Data.Map as Map
 import Data.Map (Map)
 import Data.BERT
@@ -40,12 +41,14 @@ receiveThread
   :: MVar (Map PlayerID XPosition)
   -> TransportM ()
 receiveThread playersMap = recvtForever $ \t ->
-  case readBERT t of
-    Left err -> liftIO $ putStrLn err
-    Right (player, msg) ->
-      case msg of
-        NewPosition pos -> liftIO $ modifyMVar_ playersMap $
-          return . Map.insert player pos
+  case t of
+    BinaryTerm t' ->
+      case readBERT (decode t') of
+        Left err -> liftIO $ putStrLn err
+        Right (player, msg) ->
+          case msg of
+            NewPosition pos -> liftIO $ modifyMVar_ playersMap $
+              return . Map.insert player pos
 
 sendThread
   :: PlayerID
