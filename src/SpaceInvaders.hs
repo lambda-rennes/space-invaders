@@ -131,11 +131,11 @@ handleKeysIO
   -> IO Game
 handleKeysIO (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyLeft) Gloss.Down _ _) game = do
   let newGame = (moveSpaceship (-10) game)
-  _ <- (sendMessage (connector newGame)) (NewPosition $ fst (spaceship newGame))
+  _ <- (sendMessage (connector newGame)) (NewPosition $ show $ fst (spaceship newGame))
   return newGame
 handleKeysIO (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyRight) Gloss.Down _ _) game = do
   let newGame = moveSpaceship 10 game
-  _ <- (sendMessage (connector newGame)) (NewPosition $ fst (spaceship newGame))
+  _ <- (sendMessage (connector newGame)) (NewPosition $ show $ fst (spaceship newGame))
   return newGame
 handleKeysIO _ game = return game
 

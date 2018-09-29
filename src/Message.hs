@@ -8,7 +8,7 @@ module Message
 import Data.BERT
 
 data Message
-  = NewPosition Float
+  = NewPosition String -- XXX: Just because.
 
 instance BERT Message where
 
@@ -20,5 +20,5 @@ instance BERT Message where
   readBERT t = do
     (tag, payload) <- readBERT @(String, Term) t
     case tag of
-      "newpos" -> NewPosition <$> readBERT @Float payload
+      "newpos" -> NewPosition <$> readBERT payload
       _ -> Left $ "Unexpected tag: " ++ tag

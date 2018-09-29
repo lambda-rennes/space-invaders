@@ -48,7 +48,7 @@ receiveThread playersMap = recvtForever $ \t ->
         Right (player, msg) ->
           case msg of
             NewPosition pos -> liftIO $ modifyMVar_ playersMap $
-              return . Map.insert player pos
+              return . Map.insert player (read pos)
 
 sendThread
   :: PlayerID
