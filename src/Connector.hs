@@ -41,14 +41,20 @@ receiveThread
   :: MVar (Map PlayerID XPosition)
   -> TransportM ()
 receiveThread playersMap = recvtForever $ \t ->
-  case t of
-    BinaryTerm t' ->
-      case readBERT (decode t') of
-        Left err -> liftIO $ putStrLn err
-        Right (player, msg) ->
-          case msg of
-            NewPosition pos -> liftIO $ modifyMVar_ playersMap $
-              return . Map.insert player (read pos)
+  case readBERT t of
+    Left err -> liftIO $ putStrLn err
+    Right (player, msg) ->
+      case msg of
+        NewPosition pos -> liftIO $ modifyMVar_ playersMap $
+          return . Map.insert player (read pos)
+  -- case t of
+  --   BinaryTerm t' ->
+  --     case readBERT (decode t') of
+  --       Left err -> liftIO $ putStrLn err
+  --       Right (player, msg) ->
+  --         case msg of
+  --           NewPosition pos -> liftIO $ modifyMVar_ playersMap $
+  --             return . Map.insert player (read pos)
 
 sendThread
   :: PlayerID
