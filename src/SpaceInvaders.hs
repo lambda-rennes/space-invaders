@@ -92,10 +92,10 @@ move
 move dx dy (x, y) =
   (x + dx, y + dy)
 
-
+-- | send position to the network on change
 sendPosition
-  :: Game
-  -> IO Game
+  :: Game -- ^ Game state
+  -> IO Game -- ^ IO Game si somthing goes wrong
 sendPosition newGame@(Game {spaceshipSpd = Just _, spaceship = (spaceShipX, _)}) = do
    _ <- (sendMessage (connector newGame)) (NewPosition $ show $ spaceShipX)
    return newGame
@@ -103,7 +103,6 @@ sendPosition game = return game
 
 -- | Move spaceship.
 moveSpaceship
---  :: Float
   :: Game -- ^ Game state to update
   -> Game -- ^ Game updated
 moveSpaceship game@(Game {spaceshipSpd = Nothing}) = game
