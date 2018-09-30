@@ -30,6 +30,7 @@ data Game = Game
   { library :: ImageLibrary
   , spaceship :: Position
   , spaceshipSpd :: Maybe Float
+  , missiles :: [Position]
   , monsters :: [Position]
   , mDirection :: Direction
   , otherPlayers :: MVar (Map PlayerID XPosition)
@@ -68,6 +69,7 @@ mkInitialState l playerId = do
     { library = l -- Set the game image library as the argument.
     , spaceship = (0, -250)
     , spaceshipSpd = Nothing
+    , missiles = [(0, -250)]
     , monsters = generateMonstersPosition
     , mDirection = Down
     , otherPlayers = playersMap
@@ -82,7 +84,7 @@ update
   -> Game -- ^ Current game state
   -> IO Game -- ^ Updated game state.
 -- Game playing
-update _ = sendPosition . moveSpaceship . moveMonsters
+update _ = sendPosition . moveMissiles . moveSpaceship . moveMonsters
 
 move
   :: Float
@@ -120,6 +122,14 @@ moveMonsters game =
     , monsters = fmap (move 0 (directionFactor (mDirection game))) (monsters game)
   }
 
+moveMissiles
+  :: Game
+  -> Game
+moveMissiles game = game {missiles = newMissiles}
+  where
+    newMissiles = fmap (\(xpos, ypos) -> (xpos, ypos + 5::Float)) (missiles game)
+
+
 directionFactor
   :: Direction
   -> Float
@@ -141,14 +151,6 @@ handleKeysIO
   :: Gloss.Event
   -> Game
   -> IO Game
--- handleKeysIO (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyLeft) Gloss.Down _ _) game = do
---   let newGame = (moveSpaceship (-10) game)
---   _ <- (sendMessage (connector newGame)) (NewPosition $ show $ fst (spaceship newGame))
---   return newGame
--- handleKeysIO (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyRight) Gloss.Down _ _) game = do
---   let newGame = moveSpaceship 10 game
---   _ <- (sendMessage (connector newGame)) (NewPosition $ show $ fst (spaceship newGame))
---   return newGame
 handleKeysIO event game = return $ handleKeys event game
 
 handleKeys
@@ -182,6 +184,7 @@ renderGame game =  do
     , renderOtherPlayers (library game) (connectorsToPositions (Map.toList pweet))
     , renderSpaceship (library game) (spaceship game)
     , renderMonsters (library game) (monsters game)
+    , renderMissiles (missiles game)
     ]
 
 -- | Render the background image.
@@ -202,6 +205,21 @@ renderSpaceship library (x, y) =
   where
     spaceship = Gloss.translate x y $ spaceshipImg library
     mark = Gloss.color Gloss.red $ Gloss.translate x y $ Gloss.circleSolid 10
+
+-- | Render spaceship missile
+renderMissile
+  :: Position -- ^ missile position
+  -> Gloss.Picture
+renderMissile (x, y) =
+  Gloss.color Gloss.blue
+  $ Gloss.translate x y
+  $ Gloss.rectangleSolid 5 5
+
+-- | Render Missiles
+renderMissiles
+  :: [Position]
+  -> Gloss.Picture
+renderMissiles xs = Gloss.pictures $ fmap renderMissile xs
 
 -- | Render a monster
 renderMonster
