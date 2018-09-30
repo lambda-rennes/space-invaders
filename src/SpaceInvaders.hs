@@ -29,6 +29,7 @@ import Window
 data Game = Game
   { library :: ImageLibrary
   , spaceship :: Position
+  , spaceshipSpd :: Maybe Float
   , monsters :: [Position]
   , mDirection :: Direction
   , otherPlayers :: MVar (Map PlayerID XPosition)
@@ -66,6 +67,7 @@ mkInitialState l playerId = do
   return $ Game
     { library = l -- Set the game image library as the argument.
     , spaceship = (0, -250)
+    , spaceshipSpd = Nothing
     , monsters = generateMonstersPosition
     , mDirection = Down
     , otherPlayers = playersMap
@@ -80,8 +82,7 @@ update
   -> Game -- ^ Current game state
   -> IO Game -- ^ Updated game state.
 -- Game playing
-update _ game = return $
-  moveMonsters game
+update _ = sendPosition . moveSpaceship . moveMonsters
 
 move
   :: Float
@@ -91,14 +92,25 @@ move
 move dx dy (x, y) =
   (x + dx, y + dy)
 
+
+sendPosition
+  :: Game
+  -> IO Game
+sendPosition newGame@(Game {spaceshipSpd = Just _, spaceship = (spaceShipX, _)}) = do
+   _ <- (sendMessage (connector newGame)) (NewPosition $ show $ spaceShipX)
+   return newGame
+sendPosition game = return game
+
 -- | Move spaceship.
 moveSpaceship
-  :: Float
-  -> Game -- ^ Game state to update
+--  :: Float
+  :: Game -- ^ Game state to update
   -> Game -- ^ Game updated
-moveSpaceship delta game = game {
-    spaceship = move delta 0 (spaceship game)
-  }
+moveSpaceship game@(Game {spaceshipSpd = Nothing}) = game
+moveSpaceship game@(Game {spaceshipSpd = Just spd, spaceship = (x, y)}) =
+  game {spaceship = (newSpdX, y)}
+  where
+    newSpdX = spd + x
 
 moveMonsters
   :: Game
@@ -123,23 +135,38 @@ getLowestPosition = foldr minPos 3000
   where minPos (_, y) minValue = min y minValue
 
 -- Hint: use record update syntax.
-
--- *********************** Key handling ************************
+--
+-- ********************** Key handling ************************
 
 handleKeysIO
   :: Gloss.Event
   -> Game
   -> IO Game
-handleKeysIO (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyLeft) Gloss.Down _ _) game = do
-  let newGame = (moveSpaceship (-10) game)
-  _ <- (sendMessage (connector newGame)) (NewPosition $ show $ fst (spaceship newGame))
-  return newGame
-handleKeysIO (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyRight) Gloss.Down _ _) game = do
-  let newGame = moveSpaceship 10 game
-  _ <- (sendMessage (connector newGame)) (NewPosition $ show $ fst (spaceship newGame))
-  return newGame
-handleKeysIO _ game = return game
+-- handleKeysIO (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyLeft) Gloss.Down _ _) game = do
+--   let newGame = (moveSpaceship (-10) game)
+--   _ <- (sendMessage (connector newGame)) (NewPosition $ show $ fst (spaceship newGame))
+--   return newGame
+-- handleKeysIO (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyRight) Gloss.Down _ _) game = do
+--   let newGame = moveSpaceship 10 game
+--   _ <- (sendMessage (connector newGame)) (NewPosition $ show $ fst (spaceship newGame))
+--   return newGame
+handleKeysIO event game = return $ handleKeys event game
 
+handleKeys
+  :: Gloss.Event
+  -> Game
+  -> Game
+handleKeys (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyLeft) Gloss.Down _ _) game =
+  game {spaceshipSpd = Just (-10.0)}
+handleKeys (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyLeft) Gloss.Up _ _) game =
+  game {spaceshipSpd = Nothing}
+
+handleKeys (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyRight) Gloss.Down _ _) game =
+  game {spaceshipSpd = Just 10.0}
+handleKeys (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyRight) Gloss.Up _ _) game =
+  game {spaceshipSpd = Nothing}
+
+handleKeys _ game = game
 
 -- Hint: pattern-match on event key parameter (see Gloss documentation).
 

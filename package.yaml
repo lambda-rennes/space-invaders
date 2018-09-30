@@ -6,6 +6,9 @@ author:              "Meetup Lambda Rennes"
 maintainer:          "caroline.gaudreau@gmail.com"
 copyright:           "2018 Meetup Lambda Rennes"
 
+ghc-options: -fwarn-incomplete-patterns -Werror
+
+
 extra-source-files:
 - README.md
 - ChangeLog.md
