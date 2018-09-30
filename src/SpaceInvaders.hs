@@ -276,6 +276,16 @@ renderOtherPlayer
   -> Gloss.Picture
 renderOtherPlayer library (x, y) = Gloss.translate x y $ spaceshipImg library
 
---[(PlayerID, XPosition)] -> [xPosition]
---[xPosition] -> [Position]
---[Position] -> Gloss.Picture
+-- ************************** Colision **************************************
+
+missileMonsterCollision
+  :: Position -- missile position
+  -> Position -- monster position
+  -> Maybe Position -- monster or not if killed
+missileMonsterCollision (misX, misY) (monsX, monsY) =
+  if (misY + 5) >= (monsY - 98)
+    && (misX - 5) >= (monsX - 98)
+    && (misX + 5) <= (monsX + 98) then
+    Nothing
+  else
+    Just (monsX, monsY)
