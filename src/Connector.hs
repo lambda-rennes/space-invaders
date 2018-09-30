@@ -1,7 +1,7 @@
 module Connector
   ( PlayerID
   , XPosition
-  , Connector(sendMessage)
+  , Connector(sendMessage, getNewMissiles)
   , startConnector
   ) where
 

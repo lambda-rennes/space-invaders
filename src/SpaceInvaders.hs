@@ -84,7 +84,9 @@ update
   -> Game -- ^ Current game state
   -> IO Game -- ^ Updated game state.
 -- Game playing
-update _ = sendPosition . moveMissiles . moveSpaceship . moveMonsters
+update _ game = do
+  g <- sendPosition . moveMissiles . moveSpaceship . moveMonsters $ game
+  addOthersMissiles g
 
 move
   :: Float
@@ -93,6 +95,15 @@ move
   -> Position
 move dx dy (x, y) =
   (x + dx, y + dy)
+
+addOthersMissiles
+  :: Game
+  -> IO Game
+addOthersMissiles game = do
+  newMissiles <- (getNewMissiles $ connector game)
+  let otherMissiles = fmap (\n -> (snd n, -250)) newMissiles
+      newGame = game {missiles = otherMissiles ++ (missiles game)}
+  return newGame
 
 -- | send position to the network on change
 sendPosition
@@ -151,6 +162,13 @@ handleKeysIO
   :: Gloss.Event
   -> Game
   -> IO Game
+handleKeysIO (Gloss.EventKey (Gloss.SpecialKey Gloss.KeySpace) Gloss.Down _ _) game = do
+  let newGame = game {missiles = (spaceShipX, spaceShipY):(missiles game)}
+  _ <- (sendMessage (connector newGame)) (Missile $ spaceShipX)
+  return newGame
+  where
+    (spaceShipX, spaceShipY) = (spaceship game)
+
 handleKeysIO event game = return $ handleKeys event game
 
 handleKeys
@@ -167,8 +185,7 @@ handleKeys (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyRight) Gloss.Down _ _) gam
 handleKeys (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyRight) Gloss.Up _ _) game =
   game {spaceshipSpd = Nothing}
 
-handleKeys (Gloss.EventKey (Gloss.SpecialKey Gloss.KeySpace) Gloss.Down _ _) game =
-  game {missiles = (spaceship game):(missiles game)}
+
 
 handleKeys _ game = game
 
