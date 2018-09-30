@@ -69,7 +69,7 @@ mkInitialState l playerId = do
     { library = l -- Set the game image library as the argument.
     , spaceship = (0, -250)
     , spaceshipSpd = Nothing
-    , missiles = [(0, -250)]
+    , missiles = []
     , monsters = generateMonstersPosition
     , mDirection = Down
     , otherPlayers = playersMap
@@ -166,6 +166,9 @@ handleKeys (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyRight) Gloss.Down _ _) gam
   game {spaceshipSpd = Just 10.0}
 handleKeys (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyRight) Gloss.Up _ _) game =
   game {spaceshipSpd = Nothing}
+
+handleKeys (Gloss.EventKey (Gloss.SpecialKey Gloss.KeySpace) Gloss.Down _ _) game =
+  game {missiles = (spaceship game):(missiles game)}
 
 handleKeys _ game = game
 
