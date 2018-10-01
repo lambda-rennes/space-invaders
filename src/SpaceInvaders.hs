@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns #-}
 module SpaceInvaders
     ( Game
     , ImageLibrary(..)
@@ -10,6 +11,7 @@ module SpaceInvaders
     ) where
 
 import Connector
+import Control.Monad (guard)
 import Message
 import Control.Concurrent.MVar
 import qualified Graphics.Gloss as Gloss
@@ -85,8 +87,13 @@ update
   -> IO Game -- ^ Updated game state.
 -- Game playing
 update _ game = do
-  g <- sendPosition . moveMissiles . moveSpaceship . moveMonsters $ game
-  addOthersMissiles g
+  -- g <- sendPosition . moveMissiles . moveSpaceship . moveMonsters $ game
+  g <-
+    sendPosition .
+    moveMissiles .
+    handleHits .
+    moveSpaceship $ game
+  addOtherMissiles g
 
 move
   :: Float
@@ -96,10 +103,40 @@ move
 move dx dy (x, y) =
   (x + dx, y + dy)
 
-addOthersMissiles
+imageSize :: Float
+imageSize = 98
+
+handleHits
+  :: Game
+  -> Game
+handleHits game@(Game {missiles, monsters}) =
+    game
+    { missiles = newMissiles
+    , monsters = newMonsters
+    }
+  where
+    isCollision (xMissile, yMissile) (xMonster, yMonster) =
+      let bottomY = yMonster - halfStep
+          leftX = xMonster - halfStep
+          rightX = xMonster + halfStep
+          halfStep = imageSize/2 in
+
+      xMissile >= leftX &&
+      xMissile <= rightX &&
+      yMissile <= bottomY &&
+      yMissile + missileVelocity >= bottomY
+
+    newMissiles = filter (not . missileCollision) missiles
+    newMonsters = filter (not . monsterCollision) monsters
+    missileCollision missile = any (isCollision missile) monsters
+    monsterCollision monster = any (`isCollision` monster) missiles
+
+
+
+addOtherMissiles
   :: Game
   -> IO Game
-addOthersMissiles game = do
+addOtherMissiles game = do
   newMissiles <- (getNewMissiles $ connector game)
   let otherMissiles = fmap (\n -> (snd n, -250)) newMissiles
       newGame = game {missiles = otherMissiles ++ (missiles game)}
@@ -133,12 +170,17 @@ moveMonsters game =
     , monsters = fmap (move 0 (directionFactor (mDirection game))) (monsters game)
   }
 
+missileVelocity :: Float
+missileVelocity = 5
+
 moveMissiles
   :: Game
   -> Game
-moveMissiles game = game {missiles = newMissiles}
+moveMissiles game@(Game {missiles}) = game {missiles = newMissiles}
   where
-    newMissiles = fmap (\(xpos, ypos) -> (xpos, ypos + 5::Float)) (missiles game)
+    newMissiles = fmap
+      (\(xpos, ypos) -> (xpos, ypos + missileVelocity))
+      missiles
 
 
 directionFactor
@@ -231,7 +273,7 @@ renderMissile
   :: Position -- ^ missile position
   -> Gloss.Picture
 renderMissile (x, y) =
-  Gloss.color Gloss.blue
+  Gloss.color Gloss.yellow
   $ Gloss.translate x y
   $ Gloss.rectangleSolid 5 5
 
