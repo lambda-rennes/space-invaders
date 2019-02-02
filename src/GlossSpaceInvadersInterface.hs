@@ -37,16 +37,16 @@ module GlossSpaceInvadersInterface
     -> Game -- ^ The game state to render
     -> Gloss.Picture -- ^ A picture of this game state
   renderGame imgLib game = Gloss.pictures
-    [ renderBackground imgLib
+    [ renderBackground (view backgroundImg imgLib)
     , renderSpaceship (view spaceshipImg imgLib) (spaceship game)
     , renderMonsters (view monsterImg imgLib) (monsters game)
     ]
 
   -- | Render the background image into a displayable 'Gloss.Picture'
   renderBackground
-    :: ImageLibrary -- ^ Image library
+    :: Gloss.Picture  -- ^ Background Image
     -> Gloss.Picture -- ^ Background picture
-  renderBackground library = view backgroundImg library
+  renderBackground bkgImg = bkgImg
 
   -- | Render the spaceship into a displayable 'Gloss.Picture'
   renderSpaceship
