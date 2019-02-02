@@ -2,29 +2,44 @@
 
 module SpaceInvaders
     ( Game (..)
-    , Position
+    , Monsters
+    , Monster (..)
+    , Spaceship (..)
     , mkInitialState
     , update
     ) where
 
--- *********************** Game state ****************************
+
+import Control.Lens
+
+-- *********************** Game domain ****************************
+
+
+-- | Position type alias
+type Position = (Float, Float)
+
+-- | Spaceship type
+newtype Spaceship = Spaceship Position
+
+-- | Monster type
+newtype Monster = Monster Position
+
+-- | Monster type alias
+type  Monsters = [Monster]
 
 -- | Game record
 data Game = Game
-  { spaceship :: Position
-  , monsters :: [Position]
+  { spaceship :: Spaceship
+  , monsters :: Monsters
   }
-
--- | Position
-type Position = (Float, Float)
 
 
 -- | Create the initial game state from an image library.
 mkInitialState
   :: Game    -- ^ Initial game state
 mkInitialState = Game
-  { spaceship = (0, -250)
-  , monsters = [(0, 250)]
+  { spaceship = Spaceship (0, -250)
+  , monsters = [Monster (0, 250)]
   }
 
 

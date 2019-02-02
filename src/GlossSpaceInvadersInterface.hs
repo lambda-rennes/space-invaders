@@ -17,6 +17,8 @@ module GlossSpaceInvadersInterface
   import qualified Graphics.Gloss.Interface.Pure.Game as Gloss
   import Window
 
+  -- *************** Gloss SpaceInvaders Interface ****************
+
   -- | Image library record
   data ImageLibrary = ImageLibrary
     { _backgroundImg :: Gloss.Picture
@@ -29,8 +31,8 @@ module GlossSpaceInvadersInterface
 
   -- *********************** Rendering *****************************
 
-  -- | Render the 'Game' into a displayable 'Gloss.Picture'.
   renderGame
+  -- | Render the 'Game' into a displayable 'Gloss.Picture'.
     :: ImageLibrary -- ^ ImageLibrary
     -> Game -- ^ The game state to render
     -> Gloss.Picture -- ^ A picture of this game state
@@ -40,28 +42,28 @@ module GlossSpaceInvadersInterface
     , renderMonsters (view monsterImg imgLib) (monsters game)
     ]
 
-  -- | Render the background image.
+  -- | Render the background image into a displayable 'Gloss.Picture'
   renderBackground
     :: ImageLibrary -- ^ Image library
     -> Gloss.Picture -- ^ Background picture
   renderBackground library = view backgroundImg library
 
-  -- | Render the spaceship.
+  -- | Render the spaceship into a displayable 'Gloss.Picture'
   renderSpaceship
     :: Gloss.Picture -- ^ Spaceship Image
-    -> (Float, Float) -- ^ Current spaceship (x,y) position
+    -> Spaceship -- ^ Current spaceship (x,y) position
     -> Gloss.Picture -- ^ Picture of the spaceship
-  renderSpaceship spaceshipImg (x, y) =
+  renderSpaceship spaceshipImg (Spaceship (x, y)) =
     -- The picture of the spaceship is the corresponding library sprite translated
     -- by the spaceship coordinates.
     Gloss.translate x y $ spaceshipImg
 
-  -- | Render a monster
+  -- | Render a monster into a displayable 'Gloss.Picture'
   renderMonster
     :: Gloss.Picture -- ^ Monster image
-    -> (Float, Float) -- ^ Monster (x,y) position
+    -> Monster -- ^ Monster (x,y) position
     -> Gloss.Picture -- ^ Picture of the monster
-  renderMonster monsterImg (x, y) =
+  renderMonster monsterImg (Monster (x, y)) =
     -- The picture of the monster is the corresponding library sprite translated
     -- by the spaceship coordinates.
     Gloss.translate x y $ monsterImg
@@ -71,7 +73,7 @@ module GlossSpaceInvadersInterface
   -- | Render multiple monsters in one go.
   renderMonsters
     :: Gloss.Picture -- ^ Monster image
-    -> [Position] -- ^ Monster positions.
+    -> Monsters -- ^ Monsters positions.
     -> Gloss.Picture -- ^ Collage picture with all monsters represented.
   renderMonsters mstImg monsters = Gloss.pictures (fmap (renderMonster mstImg) monsters)
   -- Hint: think fmap, think currying !
