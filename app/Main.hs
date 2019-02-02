@@ -1,6 +1,7 @@
 module Main where
 
 import SpaceInvaders
+import GlossSpaceInvadersInterface
 
 import Graphics.Gloss (loadBMP, play)
 
@@ -20,7 +21,7 @@ loadLibrary = do
 main :: IO ()
 main = do
   imageLibrary <- loadLibrary
-  let gameState = mkInitialState imageLibrary
+  let gameState = mkInitialState
   play
     window     -- Specification of game window       :: Window
     background -- Background color                   :: Color
