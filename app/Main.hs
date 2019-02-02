@@ -11,7 +11,7 @@ loadLibrary = do
   backgroundImg <- loadBMP "./assets/images/galaxy-2643089_960_720.bmp"
   spaceshipImg <- loadBMP "./assets/images/spaceship_resized2.bmp"
   monster1Img <- loadBMP "./assets/images/monster1_resized.bmp"
-  return $ ImageLibrary
+  return $  ImageLibrary
     { backgroundImg = backgroundImg
     , spaceshipImg = spaceshipImg
     , monster1Img = monster1Img
@@ -26,6 +26,6 @@ main = do
     background -- Background color                   :: Color
     fps        -- Frames per second                  :: Int
     gameState  -- Initial game state                 :: Game
-    renderGame -- Rendering function                 :: Game -> Picture
+    (renderGame imageLibrary) -- Rendering function with the image Library  Game -> Picture
     handleKeys -- Key handling function              :: Event -> Game -> Game
     update     -- State update function              :: Float -> Game -> Game

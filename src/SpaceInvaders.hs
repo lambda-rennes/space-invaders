@@ -9,22 +9,25 @@ module SpaceInvaders
     , module Window
     ) where
 
+import Control.Lens
+
 import qualified Graphics.Gloss as Gloss
 import qualified Graphics.Gloss.Interface.Pure.Game as Gloss
 import Window
 
 -- *********************** Game state ****************************
 
--- | Game type
+-- | Game record
 newtype Game = Game
-  { library :: ImageLibrary
+  { spaceship :: Position
+  , monsters :: [Position]
   }
 
--- | Image library
+-- | Image library record
 data ImageLibrary = ImageLibrary
-  { backgroundImg :: Gloss.Picture
-  , spaceshipImg :: Gloss.Picture
-  , monster1Img :: Gloss.Picture
+  { _backgroundImg :: Gloss.Picture
+  , _spaceshipImg :: Gloss.Picture
+  , _monsterImg :: Gloss.Picture
   }
 
 -- | spaceship
@@ -32,12 +35,19 @@ newtype Spaceship = Spaceship
   { pos :: (Float, Float)
   }
 
+
+
+makeLenses ''ImageLibrary -- ^ needed to access easily to the record attr
+
+
+
 -- | Create the initial game state from an image library.
 mkInitialState
   :: ImageLibrary -- ^ Image library
   -> Game    -- ^ Initial game state
 mkInitialState l = Game
-  { library = l -- Set the game image library as the argument.
+  { monsters = [(0, 250)]
+  , spaceship = (0, -250)
   }
 
 -- *********************** Updating game ************************
@@ -71,48 +81,49 @@ handleKeys _ game = game
 
 -- | Render the 'Game' into a displayable 'Gloss.Picture'.
 renderGame
-  :: Game -- ^ The game state to render
+  :: ImageLibrary -- ^ ImageLibrary
+  -> Game -- ^ The game state to render
   -> Gloss.Picture -- ^ A picture of this game state
-renderGame game = Gloss.pictures
-  [ renderBackground (library game)
-  , renderSpaceship (library game) (0, -250)
-  , renderMonster (library game) (0, 250)
+renderGame imgLib game = Gloss.pictures
+  [ renderBackground imgLib
+  , renderSpaceship (view spaceshipImg imgLib) (spaceship game)
+  , renderMonsters (view monsterImg imgLib) (monsters game)
   ]
 
 -- | Render the background image.
 renderBackground
   :: ImageLibrary -- ^ Image library
   -> Gloss.Picture -- ^ Background picture
-renderBackground library = backgroundImg library
+renderBackground library = view backgroundImg library
 
 -- | Render the spaceship.
 renderSpaceship
-  :: ImageLibrary -- ^ Image library
+  :: Gloss.Picture -- ^ Spaceship Image
   -> (Float, Float) -- ^ Current spaceship (x,y) position
   -> Gloss.Picture -- ^ Picture of the spaceship
-renderSpaceship library (x, y) =
+renderSpaceship spaceshipImg (x, y) =
   -- The picture of the spaceship is the corresponding library sprite translated
   -- by the spaceship coordinates.
-  Gloss.translate x y $ spaceshipImg library
+  Gloss.translate x y $ spaceshipImg
 
 -- | Render a monster
 renderMonster
-  :: ImageLibrary -- ^ Image library
+  :: Gloss.Picture -- ^ Monster image
   -> (Float, Float) -- ^ Monster (x,y) position
   -> Gloss.Picture -- ^ Picture of the monster
-renderMonster library (x, y) =
+renderMonster monsterImg (x, y) =
   -- The picture of the monster is the corresponding library sprite translated
   -- by the spaceship coordinates.
-  Gloss.translate x y $ monster1Img library
+  Gloss.translate x y $ monsterImg
 
 -- ***************** TODO (Suggestions only) ******************
 
 -- | Render multiple monsters in one go.
 renderMonsters
-  :: ImageLibrary
-  -> [(Float, Float)] -- ^ Monster positions.
+  :: Gloss.Picture -- ^ Monster image
+  -> [Position] -- ^ Monster positions.
   -> Gloss.Picture -- ^ Collage picture with all monsters represented.
-renderMonsters = undefined
+renderMonsters mstImg monsters = Gloss.pictures (fmap (renderMonster mstImg) monsters)
 -- Hint: think fmap, think currying !
 
 -- | Render score
