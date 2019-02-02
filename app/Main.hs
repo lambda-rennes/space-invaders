@@ -21,12 +21,11 @@ loadLibrary = do
 main :: IO ()
 main = do
   imageLibrary <- loadLibrary
-  let gameState = mkInitialState
   play
     window     -- Specification of game window       :: Window
     background -- Background color                   :: Color
     fps        -- Frames per second                  :: Int
-    gameState  -- Initial game state                 :: Game
+    gameInitialState  -- Initial game state                 :: Game
     (renderGame imageLibrary) -- Rendering function with the image Library  Game -> Picture
     handleKeys -- Key handling function              :: Event -> Game -> Game
     update     -- State update function              :: Float -> Game -> Game

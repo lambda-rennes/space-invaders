@@ -5,7 +5,7 @@ module SpaceInvaders
     , Monsters
     , Monster (..)
     , Spaceship (..)
-    , mkInitialState
+    , gameInitialState
     , update
     ) where
 
@@ -35,9 +35,9 @@ data Game = Game
 
 
 -- | Create the initial game state from an image library.
-mkInitialState
+gameInitialState
   :: Game    -- ^ Initial game state
-mkInitialState = Game
+gameInitialState = Game
   { spaceship = Spaceship (0, -250)
   , monsters = [Monster (0, 250)]
   }
