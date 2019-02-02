@@ -18,6 +18,7 @@ loadLibrary = do
     , _monsterImg = mstImg
     }
 
+-- | main function
 main :: IO ()
 main = do
   imageLibrary <- loadLibrary

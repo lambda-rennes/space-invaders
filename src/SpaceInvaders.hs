@@ -14,6 +14,8 @@ import Control.Lens
 
 -- *********************** Game domain ****************************
 
+-- | Elapsed time since last cycle (in seconds)
+type ElapsedTime = Float
 
 -- | Position type alias
 type Position = (Float, Float)
@@ -34,7 +36,7 @@ data Game = Game
   }
 
 
--- | Create the initial game state from an image library.
+-- | Create the initial game state of the game
 gameInitialState
   :: Game    -- ^ Initial game state
 gameInitialState = Game
@@ -47,7 +49,7 @@ gameInitialState = Game
 
 -- | Update the 'Game' since last frame.
 update
-  :: Float -- ^ Time passed since last update (in seconds)
+  :: ElapsedTime -- ^ Time passed since last update
   -> Game -- ^ Current game state
   -> Game -- ^ Updated game state.
 -- Game playing
@@ -58,4 +60,4 @@ moveSpaceship
   :: Game -- ^ Game state to update
   -> Game -- ^ Game updated
 moveSpaceship game = game
--- Hint: use record update syntax.
+-- we need to move what in the game?

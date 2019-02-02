@@ -2,6 +2,9 @@
 
 module GlossSpaceInvadersInterface
   ( ImageLibrary(..)
+  , SpaceshipImg(..)
+  , MonsterImg(..)
+  , BackgroundImg(..)
   , renderGame
   , handleKeys
   , update
@@ -19,11 +22,16 @@ module GlossSpaceInvadersInterface
 
   -- *************** Gloss SpaceInvaders Interface ****************
 
+  type SpaceshipImg = Gloss.Picture
+  type MonsterImg = Gloss.Picture
+  type BackgroundImg = Gloss.Picture
+
+
   -- | Image library record
   data ImageLibrary = ImageLibrary
-    { _backgroundImg :: Gloss.Picture
-    , _spaceshipImg :: Gloss.Picture
-    , _monsterImg :: Gloss.Picture
+    { _backgroundImg :: BackgroundImg
+    , _spaceshipImg :: SpaceshipImg
+    , _monsterImg :: MonsterImg
     }
 
   makeLenses ''ImageLibrary -- ^ needed to access easily to the record attr
@@ -50,7 +58,7 @@ module GlossSpaceInvadersInterface
 
   -- | Render the spaceship into a displayable 'Gloss.Picture'
   renderSpaceship
-    :: Gloss.Picture -- ^ Spaceship Image
+    :: SpaceshipImg -- ^ Spaceship Image
     -> Spaceship -- ^ Current spaceship (x,y) position
     -> Gloss.Picture -- ^ Picture of the spaceship
   renderSpaceship spaceshipImg (Spaceship (x, y)) =
@@ -60,7 +68,7 @@ module GlossSpaceInvadersInterface
 
   -- | Render a monster into a displayable 'Gloss.Picture'
   renderMonster
-    :: Gloss.Picture -- ^ Monster image
+    :: MonsterImg -- ^ Monster image
     -> Monster -- ^ Monster (x,y) position
     -> Gloss.Picture -- ^ Picture of the monster
   renderMonster monsterImg (Monster (x, y)) =
@@ -72,7 +80,7 @@ module GlossSpaceInvadersInterface
 
   -- | Render multiple monsters in one go.
   renderMonsters
-    :: Gloss.Picture -- ^ Monster image
+    :: MonsterImg -- ^ Monster image
     -> Monsters -- ^ Monsters positions.
     -> Gloss.Picture -- ^ Collage picture with all monsters represented.
   renderMonsters mstImg monsters = Gloss.pictures (fmap (renderMonster mstImg) monsters)
