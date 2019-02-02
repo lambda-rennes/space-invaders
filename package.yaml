@@ -26,6 +26,9 @@ dependencies:
 
 library:
   source-dirs: src
+  dependencies:
+  - lens
+
 
 executables:
   game:
@@ -35,5 +38,11 @@ executables:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    - -Wall
+    - -Werror
+    - -fwarn-tabs
+    - -fwarn-incomplete-uni-patterns
+    - -fwarn-incomplete-record-updates
+
     dependencies:
     - space-invaders
