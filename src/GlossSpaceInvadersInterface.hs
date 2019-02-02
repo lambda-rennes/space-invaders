@@ -75,7 +75,7 @@ module GlossSpaceInvadersInterface
     :: Gloss.Picture -- ^ Monster image
     -> Monsters -- ^ Monsters positions.
     -> Gloss.Picture -- ^ Collage picture with all monsters represented.
-  renderMonsters mstImg monsters = Gloss.pictures (fmap (renderMonster mstImg) monsters)
+  renderMonsters mstImg monsters = undefined
   -- Hint: think fmap, think currying !
 
   -- | Render score
