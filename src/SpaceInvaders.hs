@@ -20,7 +20,7 @@ import Window
 -- *********************** Game state ****************************
 
 -- | Game record
-newtype Game = Game
+data Game = Game
   { spaceship :: Position
   , monsters :: [Position]
   }
@@ -32,15 +32,15 @@ data ImageLibrary = ImageLibrary
   , _monsterImg :: Gloss.Picture
   }
 
--- | spaceship
+-- | Spaceship record
 newtype Spaceship = Spaceship
   { pos :: (Float, Float)
   }
 
-
+-- | Position
+type Position = (Float, Float)
 
 makeLenses ''ImageLibrary -- ^ needed to access easily to the record attr
-
 
 
 -- | Create the initial game state from an image library.

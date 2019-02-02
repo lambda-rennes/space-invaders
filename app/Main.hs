@@ -12,9 +12,9 @@ loadLibrary = do
   shipImg <- loadBMP "./assets/images/spaceship_resized2.bmp"
   mstImg <- loadBMP "./assets/images/monster1_resized.bmp"
   return $ ImageLibrary
-    { backgroundImg = bkgImg
-    , spaceshipImg = shipImg
-    , monster1Img = mstImg
+    { _backgroundImg = bkgImg
+    , _spaceshipImg = shipImg
+    , _monsterImg = mstImg
     }
 
 main :: IO ()
