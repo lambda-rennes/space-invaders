@@ -28,5 +28,5 @@ main = do
     fps        -- Frames per second                  :: Int
     gameInitialState  -- Initial game state                 :: Game
     (renderGame imageLibrary) -- Rendering function with the image Library  Game -> Picture
-    (handleActionKeys . fromGlossEvent) -- Key handling function  :: Event -> Game -> Game
+    (handleKey . fromGlossEvent) -- Key handling function  :: Event -> Game -> Game
     update     -- State update function              :: Float -> Game -> Game
