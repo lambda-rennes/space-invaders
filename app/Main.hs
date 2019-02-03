@@ -15,7 +15,7 @@ loadLibrary = do
   return $ ImageLibrary
     { _backgroundImg = bkgImg
     , _spaceshipImg = shipImg
-    , _monsterImg = mstImg
+    , _invaderImg = mstImg
     }
 
 -- | main function

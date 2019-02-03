@@ -2,8 +2,8 @@
 
 module SpaceInvaders
     ( Game (..)
-    , Monsters
-    , Monster (..)
+    , Invaders
+    , Invader (..)
     , Spaceship (..)
     , GameKey (..)
     , handleActionKeys
@@ -20,16 +20,16 @@ type ElapsedTime = Float
 type Position = (Float, Float)
 -- | Spaceship type
 newtype Spaceship = Spaceship Position
--- | Monster type
-newtype Monster = Monster Position
--- | Monster type alias
-type  Monsters = [Monster]
+-- | Invader type
+newtype Invader = Invader Position
+-- | Invader type alias
+type  Invaders = [Invader]
 -- | Game possible keys
 data GameKey = ResetKey
 -- | Game record
 data Game = Game
   { spaceship :: Spaceship
-  , monsters :: Monsters
+  , invaders :: Invaders
   }
 
 -- | Create the initial game state of the game
@@ -37,7 +37,7 @@ gameInitialState
   :: Game    -- ^ Initial game state
 gameInitialState = Game
   { spaceship = Spaceship (0, -250)
-  , monsters = [Monster (0, 250)]
+  , invaders = [Invader (0, 250)]
   }
 
 -- *********************** Updating game ************************

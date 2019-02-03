@@ -28,7 +28,7 @@ module GlossSpaceInvadersAdapters
   data ImageLibrary = ImageLibrary
     { _backgroundImg :: Gloss.Picture
     , _spaceshipImg :: Gloss.Picture
-    , _monsterImg :: Gloss.Picture
+    , _invaderImg :: Gloss.Picture
     }
 
   makeLenses ''ImageLibrary -- ^ needed to access easily to the record attr
@@ -44,7 +44,7 @@ module GlossSpaceInvadersAdapters
   renderGame imgLib game = Gloss.pictures
     [ renderBackground (view backgroundImg imgLib)
     , renderSpaceship (spaceship game) (view spaceshipImg imgLib)
-    , renderMonsters (monsters game) (view monsterImg imgLib)
+    , renderInvaders (invaders game) (view invaderImg imgLib)
     ]
 
   -- | Render the background image into a displayable 'Gloss.Picture'
@@ -63,24 +63,24 @@ module GlossSpaceInvadersAdapters
     -- by the spaceship coordinates.
     Gloss.translate x y $ shipImg
 
-  -- | Render a monster into a displayable 'Gloss.Picture'
-  renderMonster
-    :: Gloss.Picture -- ^ Monster image
-    -> Monster -- ^ Monster (x,y) position
-    -> Gloss.Picture -- ^ Picture of the monster
-  renderMonster mstImg (Monster (x, y)) =
-    -- The picture of the monster is the corresponding library sprite translated
+  -- | Render a Invader into a displayable 'Gloss.Picture'
+  renderInvader
+    :: Gloss.Picture -- ^ Invader image
+    -> Invader -- ^ Invader (x,y) position
+    -> Gloss.Picture -- ^ Picture of the Invader
+  renderInvader mstImg (Invader (x, y)) =
+    -- The picture of the Invader is the corresponding library sprite translated
     -- by the spaceship coordinates.
     Gloss.translate x y $ mstImg
 
   -- ***************** TODO (Suggestions only) ******************
 
-  -- | Render multiple monsters in one go.
-  renderMonsters
-    :: Monsters -- ^ Monsters positions.
-    -> Gloss.Picture -- ^ Monster image
-    -> Gloss.Picture -- ^ Collage picture with all monsters represented.
-  renderMonsters msts mstImg = Gloss.pictures $ fmap (renderMonster mstImg) msts
+  -- | Render multiple Invaders in one go.
+  renderInvaders
+    :: Invaders -- ^ Invaders positions.
+    -> Gloss.Picture -- ^ Invader image
+    -> Gloss.Picture -- ^ Collage picture with all Invaders represented.
+  renderInvaders msts mstImg = Gloss.pictures $ fmap (renderInvader mstImg) msts
   -- Hint: think fmap, think currying !
 
   -- | Render score
