@@ -1,9 +1,10 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module GlossSpaceInvadersInterface
+module GlossSpaceInvadersAdapters
   ( ImageLibrary(..)
   , renderGame
-  , handleKeys
+  , fromGlossEvent
+  , renderScores
   , update
     -- Re-exports.
   , module Window
@@ -17,7 +18,11 @@ module GlossSpaceInvadersInterface
   import qualified Graphics.Gloss.Interface.Pure.Game as Gloss
   import Window
 
+  -- gloss Picture documentation : https://hackage.haskell.org/package/gloss-1.13.0.1/docs/Graphics-Gloss-Data-Picture.html
+
+
   -- *************** Gloss SpaceInvaders Interface ****************
+
 
   -- | Image library record
   data ImageLibrary = ImageLibrary
@@ -38,8 +43,8 @@ module GlossSpaceInvadersInterface
     -> Gloss.Picture -- ^ A picture of this game state
   renderGame imgLib game = Gloss.pictures
     [ renderBackground (view backgroundImg imgLib)
-    , renderSpaceship (view spaceshipImg imgLib) (spaceship game)
-    , renderMonsters (view monsterImg imgLib) (monsters game)
+    , renderSpaceship (spaceship game) (view spaceshipImg imgLib)
+    , renderMonsters (monsters game) (view monsterImg imgLib)
     ]
 
   -- | Render the background image into a displayable 'Gloss.Picture'
@@ -50,32 +55,32 @@ module GlossSpaceInvadersInterface
 
   -- | Render the spaceship into a displayable 'Gloss.Picture'
   renderSpaceship
-    :: Gloss.Picture -- ^ Spaceship Image
-    -> Spaceship -- ^ Current spaceship (x,y) position
-    -> Gloss.Picture -- ^ Picture of the spaceship
-  renderSpaceship spaceshipImg (Spaceship (x, y)) =
+    :: Spaceship -- ^ Current spaceship (x,y) position
+    -> Gloss.Picture -- ^ Spaceship Image
+    -> Gloss.Picture -- ^ Picture of the spaceship placed in the world
+  renderSpaceship (Spaceship (x, y)) shipImg =
     -- The picture of the spaceship is the corresponding library sprite translated
     -- by the spaceship coordinates.
-    Gloss.translate x y $ spaceshipImg
+    Gloss.translate x y $ shipImg
 
   -- | Render a monster into a displayable 'Gloss.Picture'
   renderMonster
     :: Gloss.Picture -- ^ Monster image
     -> Monster -- ^ Monster (x,y) position
     -> Gloss.Picture -- ^ Picture of the monster
-  renderMonster monsterImg (Monster (x, y)) =
+  renderMonster mstImg (Monster (x, y)) =
     -- The picture of the monster is the corresponding library sprite translated
     -- by the spaceship coordinates.
-    Gloss.translate x y $ monsterImg
+    Gloss.translate x y $ mstImg
 
   -- ***************** TODO (Suggestions only) ******************
 
   -- | Render multiple monsters in one go.
   renderMonsters
-    :: Gloss.Picture -- ^ Monster image
-    -> Monsters -- ^ Monsters positions.
+    :: Monsters -- ^ Monsters positions.
+    -> Gloss.Picture -- ^ Monster image
     -> Gloss.Picture -- ^ Collage picture with all monsters represented.
-  renderMonsters mstImg monsters = undefined
+  renderMonsters msts mstImg = Gloss.pictures $ fmap (renderMonster mstImg) msts
   -- Hint: think fmap, think currying !
 
   -- | Render score
@@ -88,10 +93,16 @@ module GlossSpaceInvadersInterface
 
   -- *********************** Key handling ************************
 
-  -- | Modify 'Game' state based on key events.
-  handleKeys
-    :: Gloss.Event -- ^ keyEvent
-    -> Game -- ^ current game state
-    -> Game -- ^ Game updated
-  handleKeys _ game = game
-  -- Hint: pattern-match on event key parameter (see Gloss documentation).
+  -- EventKey Key KeyState Modifiers (Float, Float)
+  -- EventKey documentation : https://hackage.haskell.org/package/gloss-1.13.0.1/docs/Graphics-Gloss-Interface-IO-Game.html#t:Event
+  -- data KeyState = Up | Down
+  -- data Key = Char Char | SpecialKey SpecialKey | MouseButton MouseButton
+  -- Key documentation : https://hackage.haskell.org/package/gloss-1.13.0.1/docs/Graphics-Gloss-Interface-IO-Game.html#t:Key
+  -- SpecialKey documentation : https://hackage.haskell.org/package/gloss-1.13.0.1/docs/Graphics-Gloss-Interface-IO-Game.html#t:SpecialKey
+
+  -- ***************************************************************
+
+  -- | Convert game keys to gloss event keys
+  fromGlossEvent :: Gloss.Event -> Maybe GameKey
+  fromGlossEvent (Gloss.EventKey (Gloss.Char 'r') Gloss.Down _ _) = Just ResetKey
+  fromGlossEvent _ = Nothing

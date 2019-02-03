@@ -1,7 +1,7 @@
 module Main where
 
 import SpaceInvaders
-import GlossSpaceInvadersInterface
+import GlossSpaceInvadersAdapters
 
 import Graphics.Gloss (loadBMP, play)
 
@@ -28,5 +28,5 @@ main = do
     fps        -- Frames per second                  :: Int
     gameInitialState  -- Initial game state                 :: Game
     (renderGame imageLibrary) -- Rendering function with the image Library  Game -> Picture
-    handleKeys -- Key handling function              :: Event -> Game -> Game
+    (handleActionKeys . fromGlossEvent) -- Key handling function  :: Event -> Game -> Game
     update     -- State update function              :: Float -> Game -> Game
