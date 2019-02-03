@@ -67,4 +67,5 @@ packages:
 
 nix:
   enable: true
-  packages: [libGL libGLU freeglut]
+  pure: false
+  packages: [libGL_driver freeglut zlib]
