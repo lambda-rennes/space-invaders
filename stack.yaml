@@ -68,4 +68,4 @@ packages:
 nix:
   enable: true
   pure: false
-  packages: [libGL_driver freeglut zlib]
+  packages: [mesa_glu libGL libGL_driver freeglut zlib]
