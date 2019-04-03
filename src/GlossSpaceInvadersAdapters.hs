@@ -16,6 +16,7 @@ module GlossSpaceInvadersAdapters
   import Control.Lens
 
   import qualified Graphics.Gloss as Gloss
+  --import qualified Graphics.Gloss.Data.Color as Gloss
   import qualified Graphics.Gloss.Interface.Pure.Game as Gloss
   import Window
 
@@ -24,7 +25,6 @@ module GlossSpaceInvadersAdapters
 
   -- *************** Gloss SpaceInvaders Interface ****************
 
-
   -- | Image library record
   data ImageLibrary = ImageLibrary
     { _backgroundImg :: Gloss.Picture
@@ -32,12 +32,13 @@ module GlossSpaceInvadersAdapters
     , _invaderImg :: Gloss.Picture
     }
 
-  makeLenses ''ImageLibrary -- ^ needed to access easily to the record attr
+  makeLenses ''ImageLibrary -- needed to access easily to the record attr
 
 
   -- *********************** Rendering *****************************
-  renderGame
+
   -- | Render the 'Game' into a displayable 'Gloss.Picture'.
+  renderGame
     :: ImageLibrary -- ^ ImageLibrary
     -> Game -- ^ The game state to render
     -> Gloss.Picture -- ^ A picture of this game state
@@ -45,11 +46,15 @@ module GlossSpaceInvadersAdapters
     [ renderedBkg
     , renderedShip
     , renderedInvaders
+    , renderedMissiles
     ]
     where
       renderedBkg = renderBackground (view backgroundImg imgLib)
       renderedShip = renderSpaceship (view spaceship game) (view spaceshipImg imgLib)
       renderedInvaders = renderInvaders (view invaders game) (view invaderImg imgLib)
+      renderedMissiles = Gloss.pictures (fmap renderMissile (view missiles game))
+      renderMissile (Missile (x,y)) =
+        Gloss.translate x y (Gloss.color Gloss.yellow (Gloss.circleSolid 10) ) 
 
   -- | Render the background image into a displayable 'Gloss.Picture'
   renderBackground
@@ -62,28 +67,31 @@ module GlossSpaceInvadersAdapters
     :: Spaceship -- ^ Current spaceship (x,y) position
     -> Gloss.Picture -- ^ Spaceship Image
     -> Gloss.Picture -- ^ Picture of the spaceship placed in the world
-  renderSpaceship (Spaceship (x, y)) shipImg =
+  renderSpaceship (Spaceship (x, y)) shipImg = (Gloss.translate x y)  shipImg
+    
     -- The picture of the spaceship is the corresponding library sprite translated
     -- by the spaceship coordinates.
-    Gloss.translate x y $ shipImg
+    
 
   -- | Render a Invader into a displayable 'Gloss.Picture'
   renderInvader
     :: Gloss.Picture -- ^ Invader image
     -> Invader -- ^ Invader (x,y) position
     -> Gloss.Picture -- ^ Picture of the Invader
-  renderInvader img (Invader (x, y)) =
+  renderInvader img (Invader (x, y)) = Gloss.translate x y img
+    
     -- The picture of the Invader is the corresponding library sprite translated
     -- by the spaceship coordinates.
-    Gloss.translate x y $ img
+
 
   -- | Render multiple Invaders in one go.
   renderInvaders
     :: Invaders -- ^ Invaders positions.
     -> Gloss.Picture -- ^ Invader image
     -> Gloss.Picture -- ^ Collage picture with all Invaders represented.
-  renderInvaders invs img = Gloss.pictures $ fmap renderInvaderWithImg invs
+  renderInvaders invs img = Gloss.pictures  (fmap renderInvaderWithImg invs)
     where renderInvaderWithImg = renderInvader img
+  
   -- apply the pictures method to each Invader in Invaders (list of Invader)
 
 
@@ -118,6 +126,10 @@ module GlossSpaceInvadersAdapters
   -- | Convert game keys to gloss event keys
   fromGlossEvent :: Gloss.Event -> Maybe GameKey
   fromGlossEvent (Gloss.EventKey (Gloss.Char 'r') Gloss.Down _ _) = Just ResetKey
+  fromGlossEvent (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyRight) Gloss.Down _ _ ) = Just MoveRightKey
+  fromGlossEvent (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyLeft) Gloss.Down _ _ ) = Just MoveLeftKey
+  fromGlossEvent (Gloss.EventKey (Gloss.SpecialKey Gloss.KeySpace) Gloss.Down _ _ ) = Just ShootKey
+
   fromGlossEvent _ = Nothing
 
   -- | call domain handleActionKeys function if a key is known

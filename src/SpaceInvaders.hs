@@ -6,12 +6,13 @@ module SpaceInvaders
     , Invader (..)
     , Spaceship (..)
     , GameKey (..)
+    , Missile (..)
     , handleActionKeys
     , gameInitialState
     , update
     , spaceship
     , invaders
-    , moveInvader
+    , missiles
     ) where
 
 import Control.Lens
@@ -28,12 +29,17 @@ newtype Spaceship = Spaceship Position
 newtype Invader = Invader Position
 -- | Invader type alias
 type  Invaders = [Invader]
+-- | Invader type missile
+newtype Missile = Missile Position
+-- | Invader type missile
+type Missiles = [Missile]
 -- | Game possible keys
-data GameKey = ResetKey
+data GameKey = ResetKey | MoveRightKey | MoveLeftKey | ShootKey
 -- | Game record
 data Game = Game
   { _spaceship :: Spaceship
   , _invaders :: Invaders
+  , _missiles :: Missiles
   }
 
 -- | Create the initial game state of the game
@@ -41,10 +47,11 @@ gameInitialState
   :: Game    -- ^ Initial game state
 gameInitialState = Game
   { _spaceship = Spaceship (0, -250)
-  , _invaders = [Invader (0, 250)]
+  , _invaders = [Invader (x*100, 250+(x*25)) | x<-[-4..4]]
+  , _missiles = []
   }
 
-makeLenses ''Game -- ^ needed to access easily to the record attr
+makeLenses ''Game -- needed to access easily to the record attr
 
 -- *********************** Updating game ************************
 
@@ -53,12 +60,25 @@ update
   :: ElapsedTime -- ^ Time passed since last update
   -> Game -- ^ Current game state
   -> Game -- ^ Updated game state.
-update _ game = updateInvaders . updateSpaceship $ game
+update elapsedTime game = (over invaders moveInvaders) . (over missiles moveMissiles) $ game
   where
-    updateSpaceship = over spaceship moveSpaceship
-    updateInvaders = over invaders moveInvaders
+    moveInvaders :: Invaders -> Invaders
+    moveInvaders invds = fmap moveInvader invds
+   
+    moveInvader :: Invader -> Invader
+    moveInvader (Invader (x, y)) = Invader (x, y - 5 * elapsedTime)
     -- TODO need to move invaders too...
 
+
+moveMissiles 
+  :: Missiles 
+  -> Missiles
+moveMissiles miss = fmap moveMissile miss
+
+moveMissile 
+  :: Missile 
+  -> Missile 
+moveMissile (Missile (x,y)) = Missile (x,y+2)
 
 -- | Modify 'Game' state based on GameKeys.
 handleActionKeys
@@ -66,6 +86,30 @@ handleActionKeys
   -> Game -- ^ current game state
   -> Game -- ^ Game updated
 handleActionKeys ResetKey _ = gameInitialState
+handleActionKeys MoveRightKey game = over spaceship (moveSpaceshipBy 10) game
+handleActionKeys MoveLeftKey game = over spaceship (moveSpaceshipBy (-10)) game
+handleActionKeys ShootKey game = over missiles (createMissile (getSpaceshipPosition game)) game
+
+getSpaceshipPosition
+  :: Game
+  -> Position
+getSpaceshipPosition (Game (Spaceship pos) _ _) = pos
+ 
+createMissile
+ :: Position
+ -> Missiles
+ -> Missiles
+createMissile (x, y) mssles = Missile (x,y) : mssles
+
+
+
+moveSpaceshipBy
+  :: Float 
+  -> Spaceship
+  -> Spaceship
+moveSpaceshipBy speed (Spaceship (x, y)) = Spaceship (x + speed, y)
+
+
 -- TODO if you need an other game key
 -- Hint: pattern-match on the GameKey type
 
@@ -73,21 +117,14 @@ handleActionKeys ResetKey _ = gameInitialState
 -- ***************** TODO (Suggestions only) ******************
 
 -- | TODO Move spaceship.
-moveSpaceship
-  :: Spaceship -- ^ initial Spaceship
-  -> Spaceship -- ^ Spaceship updated
-moveSpaceship = id -- identity - we do nothing
+
+
 -- Hint : implement the function to move spaceship (maybe you need to change the signature)
 
 -- | TODO Move invader.
-moveInvader
-  :: Invader -- ^ initial invader
-  -> Invader -- ^ invader updated
-moveInvader = id -- identity - we do nothing
+
 
 -- | TODO Move invaders.
-moveInvaders
-  :: Invaders -- ^ initial list of invaders
-  -> Invaders -- ^ list of invaders updated
-moveInvaders = id -- identity - we do nothing
+
+
 -- Hint :  implement function to move a list of invaders with fmap

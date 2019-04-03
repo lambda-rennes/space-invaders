@@ -29,4 +29,5 @@ main = do
     gameInitialState  -- Initial game state                 :: Game
     (renderGame imageLibrary) -- Rendering function with the image Library  Game -> Picture
     (handleKey . fromGlossEvent) -- Key handling function  :: Event -> Game -> Game
-    update     -- State update function              :: Float -> Game -> Game
+    update   -- State update function              :: Float -> Game -> Game
+
