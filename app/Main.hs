@@ -13,9 +13,9 @@ loadLibrary = do
   shipImg <- loadBMP "./assets/images/spaceship_resized2.bmp"
   mstImg <- loadBMP "./assets/images/monster1_resized.bmp"
   return $ ImageLibrary
-    { _backgroundImg = bkgImg
-    , _spaceshipImg = shipImg
-    , _invaderImg = mstImg
+    { backgroundImg = bkgImg
+    , spaceshipImg = shipImg
+    , invaderImg = mstImg
     }
 
 -- | main function
@@ -30,3 +30,4 @@ main = do
     (renderGame imageLibrary) -- Rendering function with the image Library  Game -> Picture
     (handleKey . fromGlossEvent) -- Key handling function  :: Event -> Game -> Game
     update     -- State update function              :: Float -> Game -> Game
+

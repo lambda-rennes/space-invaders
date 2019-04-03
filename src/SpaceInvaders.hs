@@ -9,12 +9,10 @@ module SpaceInvaders
     , handleActionKeys
     , gameInitialState
     , update
-    , spaceship
-    , invaders
-    , moveInvader
+    -- , moveInvader
     ) where
 
-import Control.Lens
+
 
 -- *********************** Game domain ****************************
 
@@ -28,23 +26,26 @@ newtype Spaceship = Spaceship Position
 newtype Invader = Invader Position
 -- | Invader type alias
 type  Invaders = [Invader]
+-- | Etat Type
+data Etat = Stop | MovingLeft | MovingRight 
 -- | Game possible keys
-data GameKey = ResetKey
+data GameKey = ResetKey | MoveLeft | MoveRight | StopMove
 -- | Game record
 data Game = Game
-  { _spaceship :: Spaceship
-  , _invaders :: Invaders
+  { spaceship :: Spaceship
+  , invaders :: Invaders
+  , etat :: Etat
   }
 
 -- | Create the initial game state of the game
 gameInitialState
   :: Game    -- ^ Initial game state
 gameInitialState = Game
-  { _spaceship = Spaceship (0, -250)
-  , _invaders = [Invader (0, 250)]
+  { spaceship = Spaceship (0, -250)
+  , invaders = [Invader (0, 250)]
+  , etat = Stop
   }
 
-makeLenses ''Game -- ^ needed to access easily to the record attr
 
 -- *********************** Updating game ************************
 
@@ -53,12 +54,9 @@ update
   :: ElapsedTime -- ^ Time passed since last update
   -> Game -- ^ Current game state
   -> Game -- ^ Updated game state.
-update _ game = updateInvaders . updateSpaceship $ game
-  where
-    updateSpaceship = over spaceship moveSpaceship
-    updateInvaders = over invaders moveInvaders
-    -- TODO need to move invaders too...
-
+update _ game@Game {etat = MovingLeft} = game {spaceship = moveSpaceship (spaceship game) (-10)}
+update _ game@Game {etat = MovingRight} = game {spaceship = moveSpaceship (spaceship game) (10)}
+update _ game@Game {etat = Stop} = game {spaceship = moveSpaceship (spaceship game) (0)}
 
 -- | Modify 'Game' state based on GameKeys.
 handleActionKeys
@@ -66,6 +64,9 @@ handleActionKeys
   -> Game -- ^ current game state
   -> Game -- ^ Game updated
 handleActionKeys ResetKey _ = gameInitialState
+handleActionKeys MoveLeft game = game { etat = MovingLeft}
+handleActionKeys MoveRight game = game { etat = MovingRight }
+handleActionKeys StopMove game = game { etat = Stop }
 -- TODO if you need an other game key
 -- Hint: pattern-match on the GameKey type
 
@@ -75,19 +76,21 @@ handleActionKeys ResetKey _ = gameInitialState
 -- | TODO Move spaceship.
 moveSpaceship
   :: Spaceship -- ^ initial Spaceship
+  -> Float
   -> Spaceship -- ^ Spaceship updated
-moveSpaceship = id -- identity - we do nothing
+
+moveSpaceship (Spaceship (x, y)) step = Spaceship (x + step, y)
 -- Hint : implement the function to move spaceship (maybe you need to change the signature)
 
--- | TODO Move invader.
-moveInvader
-  :: Invader -- ^ initial invader
-  -> Invader -- ^ invader updated
-moveInvader = id -- identity - we do nothing
+-- -- | TODO Move invader.
+-- moveInvader
+--   :: Invader -- ^ initial invader
+--   -> Invader -- ^ invader updated
+-- moveInvader = id -- identity - we do nothing
 
--- | TODO Move invaders.
-moveInvaders
-  :: Invaders -- ^ initial list of invaders
-  -> Invaders -- ^ list of invaders updated
-moveInvaders = id -- identity - we do nothing
--- Hint :  implement function to move a list of invaders with fmap
+-- -- | TODO Move invaders.
+-- moveInvaders
+--   :: Invaders -- ^ initial list of invaders
+--   -> Invaders -- ^ list of invaders updated
+-- moveInvaders = id -- identity - we do nothing
+-- -- Hint :  implement function to move a list of invaders with fmap

@@ -27,12 +27,14 @@ module GlossSpaceInvadersAdapters
 
   -- | Image library record
   data ImageLibrary = ImageLibrary
-    { _backgroundImg :: Gloss.Picture
-    , _spaceshipImg :: Gloss.Picture
-    , _invaderImg :: Gloss.Picture
+    { backgroundImg :: Gloss.Picture
+    , spaceshipImg :: Gloss.Picture
+    , invaderImg :: Gloss.Picture
     }
 
-  makeLenses ''ImageLibrary -- ^ needed to access easily to the record attr
+  makeLenses ''ImageLibrary -- ^ needed to access easil
+
+
 
 
   -- *********************** Rendering *****************************
@@ -47,9 +49,9 @@ module GlossSpaceInvadersAdapters
     , renderedInvaders
     ]
     where
-      renderedBkg = renderBackground (view backgroundImg imgLib)
-      renderedShip = renderSpaceship (view spaceship game) (view spaceshipImg imgLib)
-      renderedInvaders = renderInvaders (view invaders game) (view invaderImg imgLib)
+      renderedBkg = renderBackground (backgroundImg imgLib)
+      renderedShip = renderSpaceship (spaceship game) (spaceshipImg imgLib)
+      renderedInvaders = renderInvaders (invaders game) (invaderImg imgLib)
 
   -- | Render the background image into a displayable 'Gloss.Picture'
   renderBackground
@@ -62,10 +64,10 @@ module GlossSpaceInvadersAdapters
     :: Spaceship -- ^ Current spaceship (x,y) position
     -> Gloss.Picture -- ^ Spaceship Image
     -> Gloss.Picture -- ^ Picture of the spaceship placed in the world
-  renderSpaceship (Spaceship (x, y)) shipImg =
+  renderSpaceship (Spaceship (x, y)) shipImg = Gloss.translate x y shipImg
     -- The picture of the spaceship is the corresponding library sprite translated
     -- by the spaceship coordinates.
-    Gloss.translate x y $ shipImg
+    
 
   -- | Render a Invader into a displayable 'Gloss.Picture'
   renderInvader
@@ -75,14 +77,16 @@ module GlossSpaceInvadersAdapters
   renderInvader img (Invader (x, y)) =
     -- The picture of the Invader is the corresponding library sprite translated
     -- by the spaceship coordinates.
-    Gloss.translate x y $ img
+    Gloss.translate x y  img
 
   -- | Render multiple Invaders in one go.
   renderInvaders
     :: Invaders -- ^ Invaders positions.
     -> Gloss.Picture -- ^ Invader image
     -> Gloss.Picture -- ^ Collage picture with all Invaders represented.
-  renderInvaders invs img = Gloss.pictures $ fmap renderInvaderWithImg invs
+  renderInvaders invs img = Gloss.pictures (fmap renderInvaderWithImg invs)
+  -- fmap :: ( a-> b) -> [a] -> [b]
+  -- fmap :: (Invader -> Gloss.Picture) -> [Invader] -> [Gloss.Picture]
     where renderInvaderWithImg = renderInvader img
   -- apply the pictures method to each Invader in Invaders (list of Invader)
 
@@ -115,12 +119,18 @@ module GlossSpaceInvadersAdapters
 
   -- ***************************************************************
 
+--Maybe GameKey = Nothing | Just Gamekey
+
   -- | Convert game keys to gloss event keys
   fromGlossEvent :: Gloss.Event -> Maybe GameKey
   fromGlossEvent (Gloss.EventKey (Gloss.Char 'r') Gloss.Down _ _) = Just ResetKey
+  fromGlossEvent (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyLeft) Gloss.Down _ _) = Just MoveLeft
+  fromGlossEvent (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyRight) Gloss.Down _ _) = Just MoveRight
+  fromGlossEvent (Gloss.EventKey (Gloss.SpecialKey k) Gloss.Up _ _) | k == Gloss.KeyRight || k == Gloss.KeyLeft = Just StopMove
   fromGlossEvent _ = Nothing
 
   -- | call domain handleActionKeys function if a key is known
   handleKey :: Maybe GameKey -> Game -> Game
   handleKey Nothing game = game
   handleKey (Just k) game = handleActionKeys k game
+  
