@@ -47,11 +47,13 @@ module GlossSpaceInvadersAdapters
     [ renderedBkg
     , renderedShip
     , renderedInvaders
+    , renderedShots
     ]
     where
       renderedBkg = renderBackground (backgroundImg imgLib)
       renderedShip = renderSpaceship (spaceship game) (spaceshipImg imgLib)
       renderedInvaders = renderInvaders (invaders game) (invaderImg imgLib)
+      renderedShots = renderShots (shots game)
 
   -- | Render the background image into a displayable 'Gloss.Picture'
   renderBackground
@@ -74,10 +76,10 @@ module GlossSpaceInvadersAdapters
     :: Gloss.Picture -- ^ Invader image
     -> Invader -- ^ Invader (x,y) position
     -> Gloss.Picture -- ^ Picture of the Invader
-  renderInvader img (Invader (x, y)) =
+  renderInvader img (Invader (x, y)) = Gloss.translate x y  img
     -- The picture of the Invader is the corresponding library sprite translated
     -- by the spaceship coordinates.
-    Gloss.translate x y  img
+    
 
   -- | Render multiple Invaders in one go.
   renderInvaders
@@ -90,9 +92,16 @@ module GlossSpaceInvadersAdapters
     where renderInvaderWithImg = renderInvader img
   -- apply the pictures method to each Invader in Invaders (list of Invader)
 
-
+  renderShot
+    :: Shot
+    -> Gloss.Picture 
+  renderShot (Shot (x, y)) = Gloss.color Gloss.rose ( Gloss.translate x y (Gloss.circleSolid 20) )
   -- ***************** TODO (Suggestions only) ******************
 
+  renderShots
+    :: Shots -- ^ Shots positions.
+    -> Gloss.Picture -- ^ Collage picture with all Shots represented.
+  renderShots sshots = Gloss.pictures (fmap renderShot sshots)
   -- | TODO Render score
   renderScores
     :: Int
@@ -124,9 +133,11 @@ module GlossSpaceInvadersAdapters
   -- | Convert game keys to gloss event keys
   fromGlossEvent :: Gloss.Event -> Maybe GameKey
   fromGlossEvent (Gloss.EventKey (Gloss.Char 'r') Gloss.Down _ _) = Just ResetKey
-  fromGlossEvent (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyLeft) Gloss.Down _ _) = Just MoveLeft
-  fromGlossEvent (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyRight) Gloss.Down _ _) = Just MoveRight
-  fromGlossEvent (Gloss.EventKey (Gloss.SpecialKey k) Gloss.Up _ _) | k == Gloss.KeyRight || k == Gloss.KeyLeft = Just StopMove
+  fromGlossEvent (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyLeft) Gloss.Down _ _) = Just LeftKeyDown
+  fromGlossEvent (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyLeft) Gloss.Up _ _) = Just LeftKeyUp
+  fromGlossEvent (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyRight) Gloss.Down _ _) = Just RightKeyDown
+  fromGlossEvent (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyRight) Gloss.Up _ _) = Just RightKeyUp
+  fromGlossEvent (Gloss.EventKey (Gloss.SpecialKey Gloss.KeySpace) Gloss.Down _ _) = Just SpaceKeyDown
   fromGlossEvent _ = Nothing
 
   -- | call domain handleActionKeys function if a key is known
