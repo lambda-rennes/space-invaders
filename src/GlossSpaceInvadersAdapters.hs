@@ -140,6 +140,7 @@ module GlossSpaceInvadersAdapters
   fromGlossEvent (Gloss.EventKey (Gloss.SpecialKey Gloss.KeySpace) Gloss.Down _ _) = Just SpaceKeyDown
   fromGlossEvent _ = Nothing
 
+
   -- | call domain handleActionKeys function if a key is known
   handleKey :: Maybe GameKey -> Game -> Game
   handleKey Nothing game = game
