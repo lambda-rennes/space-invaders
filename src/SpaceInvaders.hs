@@ -14,7 +14,7 @@ module SpaceInvaders
     -- , moveInvader
     ) where
 
-
+import Data.Maybe(catMaybes, listToMaybe)
 
 -- *********************** Game domain ****************************
 
@@ -56,7 +56,7 @@ gameInitialState
   :: Game    -- ^ Initial game state
 gameInitialState = Game
   { spaceship = Spaceship (0, -250)
-  , invaders = [Invader (-50, 250)]
+  , invaders = createInvaders [(-430+x*130,y) | x <- [0..4], y <- [150,220,290]] 
   , etat = Stop
   , shots = []
   , invadersMovements = ((1,0), 0, Tribord)
@@ -71,7 +71,8 @@ update
   -> Game -- ^ Updated game state.
 
 update _ game' =
-   ( handleUpdateInvadersVector .
+   ( handleInvadersShotsCollisions . 
+   handleUpdateInvadersVector .
    handleInvaders .
    handleSpaceship .
    handleShots) game'
@@ -90,6 +91,9 @@ update _ game' =
 
         handleShots game =
           game { shots = moveShots (shots game) }
+
+        handleInvadersShotsCollisions game =
+          game{ invaders = collisionShotsInvaders (invaders game) (shots game) }
 
 --update _ game = game {invaders = moveInvaders (invaders game) (1,1) }
 --update _ game@Game {etat = MovingLeft} = game {shots = moveShots (shots game), spaceship = moveSpaceship (spaceship game) (-10)}
@@ -126,7 +130,7 @@ handleActionKeys _ game = game
 updateInvadersVector
   :: (InvadersVector, TotalOffset, InvadersDirection)
   -> (InvadersVector, TotalOffset, InvadersDirection)
-updateInvadersVector (_, 200, invadersDirection) = ((0, (-20)), 0, inverseDirection invadersDirection)
+updateInvadersVector (_, 200, invadersDirection) = ((0, (-80)), 0, inverseDirection invadersDirection)
   where inverseDirection :: InvadersDirection -> InvadersDirection
         inverseDirection Tribord = Babord
         inverseDirection Babord = Tribord
@@ -167,3 +171,37 @@ moveShot
   -> Shot
   -> Shot
 moveShot offset (Shot (x,y)) = Shot (x, y+offset)
+
+createInvaders
+  :: [Position]
+  -> Invaders
+createInvaders positions = fmap (createInvader) positions
+
+createInvader
+ :: Position
+ -> Invader
+createInvader (x,y) = Invader (x,y)
+
+collisionInvader
+  :: Invader
+  -> Shot
+  -> Maybe Invader
+collisionInvader inv@(Invader (x', y')) (Shot (x, y)) = 
+  case (x' < x) && (x < x + 98) && (y' < y) && (y' < y + 98) of
+    True  -> Nothing
+    False -> Just inv
+
+collisionShotsInvader
+  :: Shots
+  -> Invader
+  -> Maybe Invader
+collisionShotsInvader sshots invader = 
+  case (length sshots) == 0 of
+    True  -> Just invader
+    False -> listToMaybe (catMaybes (fmap (collisionInvader invader) sshots))
+
+collisionShotsInvaders
+  :: Invaders
+  -> Shots
+  -> Invaders
+collisionShotsInvaders invs sshots = catMaybes (fmap (collisionShotsInvader sshots) invs)
