@@ -109,7 +109,8 @@ update _ game' =
           game { shots = deleteShots.moveShots $ shots game }
 
         handleInvadersShotsCollisions game =
-          game{ invaders = collisionShotsInvaders (invaders game) (shots game) }
+          game{ invaders = i, shots = s }
+            where (i, s) = collisionShotsInvaders (invaders game) (shots game)
 
 --update _ game = game {invaders = moveInvaders (invaders game) (1,1) }
 --update _ game@Game {etat = MovingLeft} = game {shots = moveShots (shots game), spaceship = moveSpaceship (spaceship game) (-10)}
@@ -226,8 +227,17 @@ collisionShotsInvader
   -> Bool
 collisionShotsInvader sshots invader = any (collisionInvader invader) sshots
 
+collisionInvadersShot
+  :: Invaders
+  -> Shot
+  -> Bool
+collisionInvadersShot invaderss sshot = any ((flip collisionInvader) sshot) invaderss
+
 collisionShotsInvaders
   :: Invaders
   -> Shots
-  -> Invaders
-collisionShotsInvaders invs sshots = filter (\i -> not $ collisionShotsInvader sshots i) invs
+  -> (Invaders, Shots)
+collisionShotsInvaders invs sshots = (newInvs, newShots)
+  where 
+    newInvs = filter (\inv -> not $ collisionShotsInvader sshots inv) invs
+    newShots = filter (\ss -> not $ collisionInvadersShot invs ss) sshots
