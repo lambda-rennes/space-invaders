@@ -8,15 +8,30 @@ module SpaceInvaders
     , Shot (..)
     , Spaceship (..)
     , GameKey (..)
+    , collisionShotsInvaders
+    , collisionShotsInvader
     , handleActionKeys
     , gameInitialState
     , update
     -- , moveInvader
     ) where
 
-import Data.Maybe(catMaybes, listToMaybe)
+import Data.Maybe(catMaybes)
+-- import Debug.Trace
 
 -- *********************** Game domain ****************************
+shotSpeed :: Float
+spaceshipSpeed :: Float
+invaderHeight :: Float
+invaderWidth :: Float
+windowMaxHeight :: Float
+
+shotSpeed = 7
+spaceshipSpeed = 10
+invaderHeight = 49
+invaderWidth = 49
+windowMaxHeight = 320
+
 
 -- | Elapsed time alias (seconds since last cycle)
 type ElapsedTime = Float
@@ -29,9 +44,9 @@ type InvadersVector = (Float, Float)
 -- | Spaceship type
 newtype Spaceship = Spaceship Position
 -- | Invader type
-newtype Invader = Invader Position
+newtype Invader = Invader Position deriving Show
 -- | Shot type
-newtype Shot = Shot Position -- Shot (5,7)
+newtype Shot = Shot Position deriving Show -- Shot (5,7)
 -- | Shot type alias
 type  Shots = [Shot]
 -- | Invader type alias
@@ -57,6 +72,7 @@ gameInitialState
 gameInitialState = Game
   { spaceship = Spaceship (0, -250)
   , invaders = createInvaders [(-430+x*130,y) | x <- [0..4], y <- [150,220,290]] 
+  --, invaders = createInvaders [(0,0), (100,100)] 
   , etat = Stop
   , shots = []
   , invadersMovements = ((1,0), 0, Tribord)
@@ -83,14 +99,14 @@ update _ game' =
             { invadersMovements = updateInvadersVector (invadersMovements game)}
         handleSpaceship game@Game {etat = MovingLeft} =
           game
-            { spaceship = moveSpaceship (spaceship game) (-10) }
+            { spaceship = moveSpaceship (spaceship game) ((-1)*spaceshipSpeed) }
         handleSpaceship game@Game {etat = MovingRight} =
           game
-            { spaceship = moveSpaceship (spaceship game) (10) }
+            { spaceship = moveSpaceship (spaceship game) (spaceshipSpeed) }
         handleSpaceship game = game
 
         handleShots game =
-          game { shots = moveShots (shots game) }
+          game { shots = deleteShots.moveShots $ shots game }
 
         handleInvadersShotsCollisions game =
           game{ invaders = collisionShotsInvaders (invaders game) (shots game) }
@@ -164,13 +180,25 @@ moveInvaders invs pos = fmap (moveInvader pos) invs -- identity - we do nothing
 moveShots
   :: Shots
   -> Shots
-moveShots sshots = fmap (moveShot 10) sshots
+moveShots sshots = fmap (moveShot shotSpeed) sshots
 
 moveShot 
   :: Float
   -> Shot
   -> Shot
 moveShot offset (Shot (x,y)) = Shot (x, y+offset)
+
+deleteShot
+  :: Shot
+  -> Maybe Shot
+deleteShot (Shot (x,y)) = case (y > windowMaxHeight) of
+                            True  -> Nothing
+                            False -> Just $ Shot (x,y)
+
+deleteShots
+  :: Shots
+  -> Shots
+deleteShots sshots = catMaybes $ fmap (deleteShot) sshots
 
 createInvaders
   :: [Position]
@@ -185,23 +213,21 @@ createInvader (x,y) = Invader (x,y)
 collisionInvader
   :: Invader
   -> Shot
-  -> Maybe Invader
-collisionInvader inv@(Invader (x', y')) (Shot (x, y)) = 
-  case (x' < x) && (x < x + 98) && (y' < y) && (y' < y + 98) of
-    True  -> Nothing
-    False -> Just inv
+  -> Bool
+collisionInvader (Invader (x', y')) (Shot (x, y)) =
+  -- traceShowId $
+  -- traceShow inv $
+  -- traceShow shot $
+  (x >= x' - invaderWidth) && (x <= x' + invaderWidth) && (y >= y' - invaderHeight) && (y <= y' + invaderHeight)
 
 collisionShotsInvader
   :: Shots
   -> Invader
-  -> Maybe Invader
-collisionShotsInvader sshots invader = 
-  case (length sshots) == 0 of
-    True  -> Just invader
-    False -> listToMaybe (catMaybes (fmap (collisionInvader invader) sshots))
+  -> Bool
+collisionShotsInvader sshots invader = any (collisionInvader invader) sshots
 
 collisionShotsInvaders
   :: Invaders
   -> Shots
   -> Invaders
-collisionShotsInvaders invs sshots = catMaybes (fmap (collisionShotsInvader sshots) invs)
+collisionShotsInvaders invs sshots = filter (\i -> not $ collisionShotsInvader sshots i) invs
