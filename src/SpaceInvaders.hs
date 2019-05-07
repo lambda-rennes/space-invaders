@@ -51,19 +51,22 @@ newtype Shot = Shot Position deriving Show -- Shot (5,7)
 type  Shots = [Shot]
 -- | Invader type alias
 type  Invaders = [Invader]
--- | Etat Type
-data Etat = Stop | MovingLeft | MovingRight
+-- | spaceshipDirection Type
+data SpaceshipDirection = Stop | MovingLeft | MovingRight
 -- | Invaders' direction
 data InvadersDirection = Tribord | Babord
 -- | Game possible keys
 data GameKey = ResetKey | LeftKeyUp | RightKeyUp | LeftKeyDown | RightKeyDown | SpaceKeyDown
+-- | Game state
+data GameState = Playing | Dead
 -- | Game record
 data Game = Game
   { spaceship :: Spaceship
   , invaders :: Invaders
-  , etat :: Etat
+  , spaceshipDirection :: SpaceshipDirection
   , shots :: Shots
   , invadersMovements :: (InvadersVector, TotalOffset, InvadersDirection)
+  , gameState :: GameState
   }
 
 -- | Create the initial game state of the game
@@ -73,9 +76,10 @@ gameInitialState = Game
   { spaceship = Spaceship (0, -250)
   , invaders = createInvaders [(-430+x*130,y) | x <- [0..4], y <- [150,220,290]] 
   --, invaders = createInvaders [(0,0), (100,100)] 
-  , etat = Stop
+  , spaceshipDirection = Stop
   , shots = []
   , invadersMovements = ((1,0), 0, Tribord)
+  , gameState = Playing
   }
 
 -- *********************** Updating game ************************
@@ -85,7 +89,7 @@ update
   :: ElapsedTime -- ^ Time passed since last update
   -> Game -- ^ Current game state
   -> Game -- ^ Updated game state.
-
+update _ game@Game {gameState = Dead} = game
 update _ game' =
    ( handleInvadersShotsCollisions . 
    handleUpdateInvadersVector .
@@ -97,10 +101,10 @@ update _ game' =
         handleUpdateInvadersVector game =
           game
             { invadersMovements = updateInvadersVector (invadersMovements game)}
-        handleSpaceship game@Game {etat = MovingLeft} =
+        handleSpaceship game@Game {spaceshipDirection = MovingLeft} =
           game
             { spaceship = moveSpaceship (spaceship game) ((-1)*spaceshipSpeed) }
-        handleSpaceship game@Game {etat = MovingRight} =
+        handleSpaceship game@Game {spaceshipDirection = MovingRight} =
           game
             { spaceship = moveSpaceship (spaceship game) (spaceshipSpeed) }
         handleSpaceship game = game
@@ -113,9 +117,9 @@ update _ game' =
             where (i, s) = collisionShotsInvaders (invaders game) (shots game)
 
 --update _ game = game {invaders = moveInvaders (invaders game) (1,1) }
---update _ game@Game {etat = MovingLeft} = game {shots = moveShots (shots game), spaceship = moveSpaceship (spaceship game) (-10)}
---update _ game@Game {etat = MovingRight} = game {shots = moveShots (shots game), spaceship = moveSpaceship (spaceship game) (10)}
---update _ game@Game {etat = Stop} = game {shots = moveShots (shots game), spaceship = moveSpaceship (spaceship game) (0)}
+--update _ game@Game {spaceshipDirection = MovingLeft} = game {shots = moveShots (shots game), spaceship = moveSpaceship (spaceship game) (-10)}
+--update _ game@Game {spaceshipDirection = MovingRight} = game {shots = moveShots (shots game), spaceship = moveSpaceship (spaceship game) (10)}
+--update _ game@Game {spaceshipDirection = Stop} = game {shots = moveShots (shots game), spaceship = moveSpaceship (spaceship game) (0)}
 
 -- | Modify 'Game' state based on GameKeys.
 handleActionKeys
@@ -123,14 +127,14 @@ handleActionKeys
   -> Game -- ^ current game state
   -> Game -- ^ Game updated
 handleActionKeys ResetKey _ = gameInitialState
-handleActionKeys LeftKeyDown game@Game {etat = Stop} = game { etat = MovingLeft }
-handleActionKeys RightKeyDown game@Game {etat = Stop} = game { etat = MovingRight }
+handleActionKeys LeftKeyDown game@Game {spaceshipDirection = Stop} = game { spaceshipDirection = MovingLeft }
+handleActionKeys RightKeyDown game@Game {spaceshipDirection = Stop} = game { spaceshipDirection = MovingRight }
 
-handleActionKeys RightKeyDown game@Game {etat = MovingLeft} = game { etat = MovingRight }
-handleActionKeys LeftKeyUp game@Game {etat = MovingLeft} = game { etat = Stop }
+handleActionKeys RightKeyDown game@Game {spaceshipDirection = MovingLeft} = game { spaceshipDirection = MovingRight }
+handleActionKeys LeftKeyUp game@Game {spaceshipDirection = MovingLeft} = game { spaceshipDirection = Stop }
 
-handleActionKeys LeftKeyDown game@Game {etat = MovingRight} = game { etat = MovingLeft }
-handleActionKeys RightKeyUp game@Game {etat = MovingRight} = game { etat = Stop }
+handleActionKeys LeftKeyDown game@Game {spaceshipDirection = MovingRight} = game { spaceshipDirection = MovingLeft }
+handleActionKeys RightKeyUp game@Game {spaceshipDirection = MovingRight} = game { spaceshipDirection = Stop }
 
 handleActionKeys SpaceKeyDown game = game {shots = (shots game) ++ [Shot (x, y)]}
   where Spaceship (x, y) = spaceship game
