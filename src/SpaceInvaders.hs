@@ -91,7 +91,8 @@ update
   -> Game -- ^ Updated game state.
 update _ game@Game {gameState = Dead} = game
 update _ game' =
-   ( handleInvadersShotsCollisions . 
+   ( controlDeath .
+   handleInvadersShotsCollisions . 
    handleUpdateInvadersVector .
    handleInvaders .
    handleSpaceship .
@@ -245,3 +246,10 @@ collisionShotsInvaders invs sshots = (newInvs, newShots)
   where 
     newInvs = filter (\inv -> not $ collisionShotsInvader sshots inv) invs
     newShots = filter (\ss -> not $ collisionInvadersShot invs ss) sshots
+
+controlDeath 
+  :: Game
+  -> Game
+controlDeath game = case any (\(Invader (_, y)) -> y < -240 ) (invaders game) of
+                      True -> game { gameState = Dead }
+                      False -> game
