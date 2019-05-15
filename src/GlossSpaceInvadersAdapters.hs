@@ -48,13 +48,14 @@ module GlossSpaceInvadersAdapters
     , renderedShip
     , renderedInvaders
     , renderedShots
+    , renderedScore
     ]
     where
       renderedBkg = renderBackground (backgroundImg imgLib)
       renderedShip = renderSpaceship (spaceship game) (spaceshipImg imgLib)
       renderedInvaders = renderInvaders (invaders game) (invaderImg imgLib)
       renderedShots = renderShots (shots game)
-
+      renderedScore = renderScores (score game)
   -- | Render the background image into a displayable 'Gloss.Picture'
   renderBackground
     :: Gloss.Picture  -- ^ Background Image
@@ -102,11 +103,15 @@ module GlossSpaceInvadersAdapters
     :: Shots -- ^ Shots positions.
     -> Gloss.Picture -- ^ Collage picture with all Shots represented.
   renderShots sshots = Gloss.pictures (fmap renderShot sshots)
-  -- | TODO Render score
+  
   renderScores
-    :: Int
+    :: Score
     -> Gloss.Picture
-  renderScores = undefined
+  renderScores sscore = Gloss.translate (-450) 250 $
+                        Gloss.scale 0.5 0.5 $ 
+                        Gloss.color Gloss.red $ 
+                        Gloss.Text (show sscore)
+                        
   -- Hint : Use 'renderText' from Gloss.
 
   -- |  TODO Render missile lauch by spaceship

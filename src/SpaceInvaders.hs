@@ -8,6 +8,7 @@ module SpaceInvaders
     , Shot (..)
     , Spaceship (..)
     , GameKey (..)
+    , Score
     , collisionShotsInvaders
     , collisionShotsInvader
     , handleActionKeys
@@ -25,12 +26,14 @@ spaceshipSpeed :: Float
 invaderHeight :: Float
 invaderWidth :: Float
 windowMaxHeight :: Float
+invaderPoints :: Int
 
 shotSpeed = 7
 spaceshipSpeed = 10
 invaderHeight = 49
 invaderWidth = 49
 windowMaxHeight = 320
+invaderPoints = 100
 
 
 -- | Elapsed time alias (seconds since last cycle)
@@ -59,6 +62,8 @@ data InvadersDirection = Tribord | Babord
 data GameKey = ResetKey | LeftKeyUp | RightKeyUp | LeftKeyDown | RightKeyDown | SpaceKeyDown
 -- | Game state
 data GameState = Playing | Dead
+-- | Score alias
+type Score = Int
 -- | Game record
 data Game = Game
   { spaceship :: Spaceship
@@ -67,6 +72,7 @@ data Game = Game
   , shots :: Shots
   , invadersMovements :: (InvadersVector, TotalOffset, InvadersDirection)
   , gameState :: GameState
+  , score :: Score
   }
 
 -- | Create the initial game state of the game
@@ -80,6 +86,7 @@ gameInitialState = Game
   , shots = []
   , invadersMovements = ((1,0), 0, Tribord)
   , gameState = Playing
+  , score = 0
   }
 
 -- *********************** Updating game ************************
@@ -114,8 +121,9 @@ update _ game' =
           game { shots = deleteShots.moveShots $ shots game }
 
         handleInvadersShotsCollisions game =
-          game{ invaders = i, shots = s }
-            where (i, s) = collisionShotsInvaders (invaders game) (shots game)
+          game{ invaders = i, shots = s, score = newScore }
+            where (i, s, shotInvs) = collisionShotsInvaders (invaders game) (shots game)
+                  newScore = computeScore (score game) shotInvs
 
 --update _ game = game {invaders = moveInvaders (invaders game) (1,1) }
 --update _ game@Game {spaceshipDirection = MovingLeft} = game {shots = moveShots (shots game), spaceship = moveSpaceship (spaceship game) (-10)}
@@ -241,15 +249,22 @@ collisionInvadersShot invaderss sshot = any ((flip collisionInvader) sshot) inva
 collisionShotsInvaders
   :: Invaders
   -> Shots
-  -> (Invaders, Shots)
-collisionShotsInvaders invs sshots = (newInvs, newShots)
+  -> (Invaders, Shots, Int) -- Int : number of touched invaders
+collisionShotsInvaders invs sshots = (newInvs, newShots, touchedInvs)
   where 
     newInvs = filter (\inv -> not $ collisionShotsInvader sshots inv) invs
     newShots = filter (\ss -> not $ collisionInvadersShot invs ss) sshots
+    touchedInvs = (length invs) - (length newInvs)
 
-controlDeath 
+controlDeath
   :: Game
   -> Game
 controlDeath game = case any (\(Invader (_, y)) -> y < -240 ) (invaders game) of
                       True -> game { gameState = Dead }
                       False -> game
+
+computeScore
+  :: Score
+  -> Int
+  -> Score
+computeScore currentScore shotInvs = currentScore + (shotInvs * invaderPoints)
