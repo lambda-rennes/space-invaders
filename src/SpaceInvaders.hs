@@ -50,7 +50,8 @@ newtype Spaceship = Spaceship Position
 -- | Invader type
 newtype Invader = Invader Position deriving Show
 -- | Shot type
-newtype Shot = Shot Position deriving Show -- Shot (5,7)
+-- newtype Shot = Shot Position deriving Show -- Shot (5,7)
+data Shot = InvaderShot Position | SpaceShipShot Position
 -- | Shot type alias
 type  Shots = [Shot]
 -- | Invader type alias
@@ -146,7 +147,7 @@ handleActionKeys LeftKeyUp game@Game {spaceshipDirection = MovingLeft} = game { 
 handleActionKeys LeftKeyDown game@Game {spaceshipDirection = MovingRight} = game { spaceshipDirection = MovingLeft }
 handleActionKeys RightKeyUp game@Game {spaceshipDirection = MovingRight} = game { spaceshipDirection = Stop }
 
-handleActionKeys SpaceKeyDown game = game {shots = (shots game) ++ [Shot (x, y)]}
+handleActionKeys SpaceKeyDown game = game {shots = (shots game) ++ [SpaceShipShot (x, y)]}
   where Spaceship (x, y) = spaceship game
 
 handleActionKeys _ game = game
@@ -201,14 +202,19 @@ moveShot
   :: Float
   -> Shot
   -> Shot
-moveShot offset (Shot (x,y)) = Shot (x, y+offset)
+moveShot offset (SpaceShipShot (x,y)) = SpaceShipShot (x, y+offset)
+moveShot offset (InvaderShot (x,y)) = InvaderShot (x, y-offset)
 
 deleteShot
   :: Shot
   -> Maybe Shot
-deleteShot (Shot (x,y)) = case (y > windowMaxHeight) of
+deleteShot (SpaceShipShot (x,y)) = case (y > windowMaxHeight) of
                             True  -> Nothing
-                            False -> Just $ Shot (x,y)
+                            False -> Just $ SpaceShipShot (x,y)
+
+deleteShot (InvaderShot (x,y)) = case (y < 0) of
+                            True  -> Nothing
+                            False -> Just $ InvaderShot (x,y)
 
 deleteShots
   :: Shots
@@ -229,11 +235,12 @@ collisionInvader
   :: Invader
   -> Shot
   -> Bool
-collisionInvader (Invader (x', y')) (Shot (x, y)) =
+collisionInvader (Invader (x', y')) (SpaceShipShot (x, y)) =
   -- traceShowId $
   -- traceShow inv $
   -- traceShow shot $
   (x >= x' - invaderWidth) && (x <= x' + invaderWidth) && (y >= y' - invaderHeight) && (y <= y' + invaderHeight)
+collisionInvader _ _ = False
 
 collisionShotsInvader
   :: Shots

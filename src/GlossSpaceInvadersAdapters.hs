@@ -100,7 +100,8 @@ module GlossSpaceInvadersAdapters
   renderShot
     :: Shot
     -> Gloss.Picture 
-  renderShot (Shot (x, y)) = Gloss.color Gloss.rose ( Gloss.translate x y (Gloss.circleSolid 20) )
+  renderShot (SpaceShipShot (x, y)) = Gloss.color Gloss.rose ( Gloss.translate x y (Gloss.circleSolid 20) )
+  renderShot (InvaderShot (x, y)) = Gloss.color Gloss.yellow ( Gloss.translate x y (Gloss.rectangleSolid 2 5) )
   -- ***************** TODO (Suggestions only) ******************
 
   renderShots
