@@ -43,7 +43,11 @@ module GlossSpaceInvadersAdapters
     :: ImageLibrary -- ^ ImageLibrary
     -> Game -- ^ The game state to render
     -> Gloss.Picture -- ^ A picture of this game state
-  renderGame imgLib game = Gloss.pictures
+  renderGame _ game@Game {gameState = Dead} = Gloss.pictures
+    [ renderedStart ]
+    where
+      renderedStart = renderStart (score game)
+  renderGame imgLib game@Game {gameState = Playing} = Gloss.pictures
     [ renderedBkg
     , renderedShip
     , renderedInvaders
@@ -111,7 +115,24 @@ module GlossSpaceInvadersAdapters
                         Gloss.scale 0.5 0.5 $ 
                         Gloss.color Gloss.red $ 
                         Gloss.Text (show sscore)
-                        
+
+  renderStart
+    :: Score -- ^ Score precedent game.
+    -> Gloss.Picture -- ^ Collage picture with all Shots represented.
+  renderStart sscore = Gloss.Pictures [pictureScore, pictureStart, pictureReset]
+    where pictureScore = Gloss.translate (-450) 250 $
+                         Gloss.scale 0.5 0.5 $ 
+                         Gloss.color Gloss.red $ 
+                         Gloss.Text ("SCORE : " ++ show sscore)
+          pictureStart = Gloss.scale 0.5 0.5 $ 
+                         Gloss.color Gloss.white $ 
+                         Gloss.Text ("START : ")
+          pictureReset = Gloss.translate 0 (-80) $
+                         Gloss.scale 0.5 0.5 $ 
+                         Gloss.color Gloss.blue $ 
+                         Gloss.Text ("Press R ")
+
+
   -- Hint : Use 'renderText' from Gloss.
 
   -- |  TODO Render missile lauch by spaceship

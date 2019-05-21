@@ -9,6 +9,7 @@ module SpaceInvaders
     , Spaceship (..)
     , GameKey (..)
     , Score
+    , GameState (..)
     , collisionShotsInvaders
     , collisionShotsInvader
     , handleActionKeys
