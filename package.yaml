@@ -31,12 +31,10 @@ ghc-options:
 dependencies:
 - base >= 4.7 && < 5
 - gloss
-- lens
 
 library:
   source-dirs: src
-  dependencies:
-  - lens
+
 
 
 executables:

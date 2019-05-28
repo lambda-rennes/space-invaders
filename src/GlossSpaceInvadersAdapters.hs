@@ -13,8 +13,6 @@ module GlossSpaceInvadersAdapters
 
   import SpaceInvaders
 
-  import Control.Lens
-
   import qualified Graphics.Gloss as Gloss
   import qualified Graphics.Gloss.Interface.Pure.Game as Gloss
   import Window
@@ -31,8 +29,6 @@ module GlossSpaceInvadersAdapters
     , spaceshipImg :: Gloss.Picture
     , invaderImg :: Gloss.Picture
     }
-
-  makeLenses ''ImageLibrary -- ^ needed to access easil
 
 
 
