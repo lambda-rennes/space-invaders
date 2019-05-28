@@ -43,6 +43,10 @@ module GlossSpaceInvadersAdapters
     [ renderedStart ]
     where
       renderedStart = renderStart (score game)
+  renderGame _ game@Game {gameState = Win} = Gloss.pictures
+    [ renderedStart ]
+    where
+      renderedStart = renderStart (score game)
   renderGame imgLib game@Game {gameState = Playing} = Gloss.pictures
     [ renderedBkg
     , renderedShip
@@ -97,7 +101,7 @@ module GlossSpaceInvadersAdapters
     :: Shot
     -> Gloss.Picture 
   renderShot (SpaceShipShot (x, y)) = Gloss.color Gloss.rose ( Gloss.translate x y (Gloss.circleSolid 20) )
-  renderShot (InvaderShot (x, y)) = Gloss.color Gloss.yellow ( Gloss.translate x y (Gloss.rectangleSolid 2 5) )
+  renderShot (InvaderShot (x, y)) = Gloss.color Gloss.yellow ( Gloss.translate x y (Gloss.rectangleSolid 6 14) )
   -- ***************** TODO (Suggestions only) ******************
 
   renderShots

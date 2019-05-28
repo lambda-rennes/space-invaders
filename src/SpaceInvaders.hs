@@ -70,7 +70,7 @@ data InvadersDirection = Tribord | Babord
 -- | Game possible keys
 data GameKey = ResetKey | LeftKeyUp | RightKeyUp | LeftKeyDown | RightKeyDown | SpaceKeyDown
 -- | Game state
-data GameState = Playing | Dead
+data GameState = Playing | Dead | Win
 -- | Score alias
 type Score = Int
 -- | Game record
@@ -108,8 +108,10 @@ update
   -> Game -- ^ Current game state
   -> Game -- ^ Updated game state.
 update _ game@Game {gameState = Dead} = game
+update _ game@Game {gameState = Win} = game
 update _ game' =
    ( controlDeath .
+   controlWin .
    handleInvadersShotsCollisions . 
    handleUpdateInvadersVector .
    handleInvaders .
@@ -278,6 +280,13 @@ controlDeath
 controlDeath game = case any (\Invader{positionInvader = (_, y)} -> y < -240 ) (invaders game) of
                       True -> game { gameState = Dead }
                       False -> game
+
+controlWin
+  :: Game
+  -> Game
+controlWin game = case (invaders game) of
+                      [] -> game { gameState = Win }
+                      _  -> game
 
 computeScore
   :: Score
