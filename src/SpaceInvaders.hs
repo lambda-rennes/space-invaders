@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
-
+{-# LANGUAGE ScopedTypeVariables #-}
 module SpaceInvaders
     ( Game (..)
     , Invaders
@@ -19,6 +19,8 @@ module SpaceInvaders
     ) where
 
 import Data.Maybe(catMaybes)
+import qualified System.Random as Random
+
 -- import Debug.Trace
 
 -- *********************** Game domain ****************************
@@ -80,6 +82,7 @@ data Game = Game
   , invadersMovements :: (InvadersVector, TotalOffset, InvadersDirection)
   , gameState :: GameState
   , score :: Score
+  , randomGen :: Random.StdGen
   }
 
 -- | Create the initial game state of the game
@@ -94,6 +97,7 @@ gameInitialState = Game
   , invadersMovements = ((1,0), 0, Tribord)
   , gameState = Playing
   , score = 0
+  , randomGen = Random.mkStdGen 666
   }
 
 -- *********************** Updating game ************************
@@ -104,7 +108,7 @@ update
   -> Game -- ^ Current game state
   -> Game -- ^ Updated game state.
 update _ game@Game {gameState = Dead} = game
-update elapsedTime game' =
+update _ game' =
    ( controlDeath .
    handleInvadersShotsCollisions . 
    handleUpdateInvadersVector .
@@ -133,7 +137,8 @@ update elapsedTime game' =
             where (i, s, shotInvs) = collisionShotsInvaders (invaders game) (shots game)
                   newScore = computeScore (score game) shotInvs
         handleInvadersShots game =
-          game { shots = (shots game) ++ (updateInvadersShots elapsedTime (invaders game))}
+          game { shots = (shots game) ++ s, randomGen = r }
+            where (s, r) = (updateInvadersShots (randomGen game) (invaders game))
 --update _ game = game {invaders = moveInvaders (invaders game) (1,1) }
 --update _ game@Game {spaceshipDirection = MovingLeft} = game {shots = moveShots (shots game), spaceship = moveSpaceship (spaceship game) (-10)}
 --update _ game@Game {spaceshipDirection = MovingRight} = game {shots = moveShots (shots game), spaceship = moveSpaceship (spaceship game) (10)}
@@ -281,10 +286,19 @@ computeScore
 computeScore currentScore shotInvs = currentScore + (shotInvs * invaderPoints)
 
 updateInvadersShots
-  :: ElapsedTime
+  :: Random.StdGen
   -> Invaders
-  -> Shots
-updateInvadersShots _ invs = fmap createInvaderShot invs
+  -> (Shots, Random.StdGen)
+updateInvadersShots rand invs =
+  case invs of
+    [] -> ([], rand)
+    (firstInv : othersInvs) -> (newList ++ newShot, otherRand)
+      where 
+        (newList , otherRand) = updateInvadersShots newRand othersInvs
+        (randomValue::Int, newRand) = Random.randomR (1, 10000) rand
+        newShot = case randomValue of
+          1 -> [ createInvaderShot firstInv ]
+          _ -> []
 
 createInvaderShot
   :: Invader
