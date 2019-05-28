@@ -45,10 +45,15 @@ type Position = (Float, Float)
 type TotalOffset = Int
 -- | Invader's vector
 type InvadersVector = (Float, Float)
+-- | Modulo to generate shot
+type ModuloShot = Int
 -- | Spaceship type
 newtype Spaceship = Spaceship Position
 -- | Invader type
-newtype Invader = Invader Position deriving Show
+data Invader = Invader 
+  { moduloShot :: ModuloShot
+  , positionInvader :: Position
+  }
 -- | Shot type
 -- newtype Shot = Shot Position deriving Show -- Shot (5,7)
 data Shot = InvaderShot Position | SpaceShipShot Position
@@ -82,7 +87,7 @@ gameInitialState
   :: Game    -- ^ Initial game state
 gameInitialState = Game
   { spaceship = Spaceship (0, -250)
-  , invaders = createInvaders [(-430+x*130,y) | x <- [0..4], y <- [150,220,290]] 
+  , invaders = createInvaders [1 .. 12]  [(-430+x*130,y) | x <- [0..4], y <- [150,220,290]]  --[3, 7, 2, 5, 9, 10, 7, 6, 3, 9, 6, 9 ]
   --, invaders = createInvaders [(0,0), (100,100)] 
   , spaceshipDirection = Stop
   , shots = []
@@ -99,13 +104,14 @@ update
   -> Game -- ^ Current game state
   -> Game -- ^ Updated game state.
 update _ game@Game {gameState = Dead} = game
-update _ game' =
+update elapsedTime game' =
    ( controlDeath .
    handleInvadersShotsCollisions . 
    handleUpdateInvadersVector .
    handleInvaders .
    handleSpaceship .
-   handleShots) game'
+   handleShots .
+   handleInvadersShots) game'
   where handleInvaders game = game {invaders = moveInvaders (invaders game) a }
           where (a, _, _) = invadersMovements game
         handleUpdateInvadersVector game =
@@ -120,13 +126,14 @@ update _ game' =
         handleSpaceship game = game
 
         handleShots game =
-          game { shots = deleteShots.moveShots $ shots game }
+          game { shots = deleteShots . moveShots $ shots game }
 
         handleInvadersShotsCollisions game =
           game{ invaders = i, shots = s, score = newScore }
             where (i, s, shotInvs) = collisionShotsInvaders (invaders game) (shots game)
                   newScore = computeScore (score game) shotInvs
-
+        handleInvadersShots game =
+          game { shots = (shots game) ++ (updateInvadersShots elapsedTime (invaders game))}
 --update _ game = game {invaders = moveInvaders (invaders game) (1,1) }
 --update _ game@Game {spaceshipDirection = MovingLeft} = game {shots = moveShots (shots game), spaceship = moveSpaceship (spaceship game) (-10)}
 --update _ game@Game {spaceshipDirection = MovingRight} = game {shots = moveShots (shots game), spaceship = moveSpaceship (spaceship game) (10)}
@@ -183,7 +190,7 @@ moveInvader
   :: Position
   -> Invader -- ^ initial invader
   -> Invader -- ^ invader updated
-moveInvader (x', y') (Invader(x,y)) = Invader (x + x', y + y') -- 
+moveInvader (x', y') Invader{ moduloShot = m, positionInvader = (x, y)} = Invader m (x + x', y + y')
 
 -- -- | TODO Move invaders.
 moveInvaders
@@ -212,7 +219,7 @@ deleteShot (SpaceShipShot (x,y)) = case (y > windowMaxHeight) of
                             True  -> Nothing
                             False -> Just $ SpaceShipShot (x,y)
 
-deleteShot (InvaderShot (x,y)) = case (y < 0) of
+deleteShot (InvaderShot (x,y)) = case (y < - windowMaxHeight) of
                             True  -> Nothing
                             False -> Just $ InvaderShot (x,y)
 
@@ -222,20 +229,16 @@ deleteShots
 deleteShots sshots = catMaybes $ fmap (deleteShot) sshots
 
 createInvaders
-  :: [Position]
+  :: [ModuloShot]
+  -> [Position]
   -> Invaders
-createInvaders positions = fmap (createInvader) positions
-
-createInvader
- :: Position
- -> Invader
-createInvader (x,y) = Invader (x,y)
+createInvaders modulos positions = (<*>) (fmap Invader modulos) positions 
 
 collisionInvader
   :: Invader
   -> Shot
   -> Bool
-collisionInvader (Invader (x', y')) (SpaceShipShot (x, y)) =
+collisionInvader Invader{positionInvader = (x', y')} (SpaceShipShot (x, y)) =
   -- traceShowId $
   -- traceShow inv $
   -- traceShow shot $
@@ -267,7 +270,7 @@ collisionShotsInvaders invs sshots = (newInvs, newShots, touchedInvs)
 controlDeath
   :: Game
   -> Game
-controlDeath game = case any (\(Invader (_, y)) -> y < -240 ) (invaders game) of
+controlDeath game = case any (\Invader{positionInvader = (_, y)} -> y < -240 ) (invaders game) of
                       True -> game { gameState = Dead }
                       False -> game
 
@@ -276,3 +279,15 @@ computeScore
   -> Int
   -> Score
 computeScore currentScore shotInvs = currentScore + (shotInvs * invaderPoints)
+
+updateInvadersShots
+  :: ElapsedTime
+  -> Invaders
+  -> Shots
+updateInvadersShots _ invs = fmap createInvaderShot invs
+
+createInvaderShot
+  :: Invader
+  -> Shot
+createInvaderShot Invader{positionInvader = (x, y)} = InvaderShot (x, y)
+

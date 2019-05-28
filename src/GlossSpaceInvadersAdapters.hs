@@ -81,7 +81,7 @@ module GlossSpaceInvadersAdapters
     :: Gloss.Picture -- ^ Invader image
     -> Invader -- ^ Invader (x,y) position
     -> Gloss.Picture -- ^ Picture of the Invader
-  renderInvader img (Invader (x, y)) = Gloss.translate x y  img
+  renderInvader img Invader{ positionInvader = (x, y)} = Gloss.translate x y  img
     -- The picture of the Invader is the corresponding library sprite translated
     -- by the spaceship coordinates.
     
