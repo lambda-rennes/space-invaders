@@ -18,8 +18,11 @@ module SpaceInvaders
     -- , moveInvader
     ) where
 
+import Control.Applicative ((<$>))
+import Control.Monad (mapM)
 import Data.Maybe(catMaybes)
-import qualified System.Random as Random
+import Control.Monad.Random (Rand)
+import qualified Control.Monad.Random as Random
 
 -- import Debug.Trace
 
@@ -298,16 +301,16 @@ updateInvadersShots
   :: Random.StdGen
   -> Invaders
   -> (Shots, Random.StdGen)
-updateInvadersShots rand invs =
-  case invs of
-    [] -> ([], rand)
-    (firstInv : othersInvs) -> (newList ++ newShot, otherRand)
-      where 
-        (newList , otherRand) = updateInvadersShots newRand othersInvs
-        (randomValue::Int, newRand) = Random.randomR (1, 10000) rand
-        newShot = case randomValue of
-          1 -> [ createInvaderShot firstInv ]
-          _ -> []
+updateInvadersShots rand invs = Random.runRand genShots rand
+  where genShots :: Rand Random.StdGen Shots
+        genShots = catMaybes <$> mapM genShot invs
+
+        genShot :: Invader -> Rand Random.StdGen (Maybe Shot)
+        genShot inv = do
+          (randomValue :: Int) <- Random.getRandomR (1, 10000)
+          return $ case randomValue of
+            1 -> Just $ createInvaderShot inv
+            _ -> Nothing
 
 createInvaderShot
   :: Invader
