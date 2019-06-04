@@ -26,6 +26,7 @@ import qualified System.Random as Random
 -- *********************** Game domain ****************************
 shotSpeed :: Float
 spaceshipSpeed :: Float
+spaceshipHitboxSize :: Float
 invaderHeight :: Float
 invaderWidth :: Float
 windowMaxHeight :: Float
@@ -33,6 +34,7 @@ invaderPoints :: Int
 
 shotSpeed = 7
 spaceshipSpeed = 10
+spaceshipHitboxSize = 25
 invaderHeight = 49
 invaderWidth = 49
 windowMaxHeight = 320
@@ -117,7 +119,8 @@ update _ game' =
    handleInvaders .
    handleSpaceship .
    handleShots .
-   handleInvadersShots) game'
+   handleInvadersShots . 
+   handleShipCollision) game'
   where handleInvaders game = game {invaders = moveInvaders (invaders game) a }
           where (a, _, _) = invadersMovements game
         handleUpdateInvadersVector game =
@@ -141,6 +144,13 @@ update _ game' =
         handleInvadersShots game =
           game { shots = (shots game) ++ s, randomGen = r }
             where (s, r) = (updateInvadersShots (randomGen game) (invaders game))
+        handleShipCollision game =
+          game { gameState = newGameState}
+            where newGameState = 
+                    case collisionSpaceshipInvadersShots (shots game) (spaceship game) of
+                      True -> Dead
+                      False -> (gameState game)
+
 --update _ game = game {invaders = moveInvaders (invaders game) (1,1) }
 --update _ game@Game {spaceshipDirection = MovingLeft} = game {shots = moveShots (shots game), spaceship = moveSpaceship (spaceship game) (-10)}
 --update _ game@Game {spaceshipDirection = MovingRight} = game {shots = moveShots (shots game), spaceship = moveSpaceship (spaceship game) (10)}
@@ -273,6 +283,20 @@ collisionShotsInvaders invs sshots = (newInvs, newShots, touchedInvs)
     newInvs = filter (\inv -> not $ collisionShotsInvader sshots inv) invs
     newShots = filter (\ss -> not $ collisionInvadersShot invs ss) sshots
     touchedInvs = (length invs) - (length newInvs)
+
+collisionSpaceshipInvadersShots
+  :: Shots
+  -> Spaceship
+  -> Bool
+collisionSpaceshipInvadersShots sshots sspaceship = any (collisionSpaceshipShot sspaceship) sshots
+
+collisionSpaceshipShot 
+  :: Spaceship
+  -> Shot
+  -> Bool
+collisionSpaceshipShot _ (SpaceShipShot _ ) = False
+collisionSpaceshipShot (Spaceship (x',y')) (InvaderShot (x,y)) = sqrt ((y'- y)**2 + (x' - x)**2) < spaceshipHitboxSize
+
 
 controlDeath
   :: Game
