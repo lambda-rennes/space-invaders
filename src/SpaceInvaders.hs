@@ -31,6 +31,7 @@ invaderHeight :: Float
 invaderWidth :: Float
 windowMaxHeight :: Float
 invaderPoints :: Int
+timeBetweenShots :: ElapsedTime
 
 shotSpeed = 7
 spaceshipSpeed = 10
@@ -39,6 +40,7 @@ invaderHeight = 49
 invaderWidth = 49
 windowMaxHeight = 320
 invaderPoints = 100
+timeBetweenShots = 1
 
 
 -- | Elapsed time alias (seconds since last cycle)
@@ -85,6 +87,7 @@ data Game = Game
   , gameState :: GameState
   , score :: Score
   , randomGen :: Random.StdGen
+  , timeSinceLastShot :: ElapsedTime
   }
 
 -- | Create the initial game state of the game
@@ -100,6 +103,7 @@ gameInitialState = Game
   , gameState = Playing
   , score = 0
   , randomGen = Random.mkStdGen 666
+  , timeSinceLastShot = timeBetweenShots
   }
 
 -- *********************** Updating game ************************
@@ -111,8 +115,8 @@ update
   -> Game -- ^ Updated game state.
 update _ game@Game {gameState = Dead} = game
 update _ game@Game {gameState = Win} = game
-update _ game' =
-   ( controlDeath .
+update elapsedTime game' =
+   (controlDeath .
    controlWin .
    handleInvadersShotsCollisions . 
    handleUpdateInvadersVector .
@@ -120,8 +124,10 @@ update _ game' =
    handleSpaceship .
    handleShots .
    handleInvadersShots . 
-   handleShipCollision) game'
-  where handleInvaders game = game {invaders = moveInvaders (invaders game) a }
+   handleShipCollision .
+   updateTime) game'
+  where updateTime game = game {timeSinceLastShot = (timeSinceLastShot game) + elapsedTime}
+        handleInvaders game = game {invaders = moveInvaders (invaders game) a }
           where (a, _, _) = invadersMovements game
         handleUpdateInvadersVector game =
           game
@@ -171,10 +177,19 @@ handleActionKeys LeftKeyUp game@Game {spaceshipDirection = MovingLeft} = game { 
 handleActionKeys LeftKeyDown game@Game {spaceshipDirection = MovingRight} = game { spaceshipDirection = MovingLeft }
 handleActionKeys RightKeyUp game@Game {spaceshipDirection = MovingRight} = game { spaceshipDirection = Stop }
 
-handleActionKeys SpaceKeyDown game = game {shots = (shots game) ++ [SpaceShipShot (x, y)]}
-  where Spaceship (x, y) = spaceship game
+handleActionKeys SpaceKeyDown game = game {shots = (shots game) ++ newShot, timeSinceLastShot = newT}
+  where (newShot, newT) = createSpaceshipShot (timeSinceLastShot game) (spaceship game)
 
 handleActionKeys _ game = game
+
+createSpaceshipShot
+  :: ElapsedTime
+  -> Spaceship
+  -> ([Shot], ElapsedTime)
+createSpaceshipShot t (Spaceship (x, y)) =
+  case t > timeBetweenShots of
+    True -> ([SpaceShipShot (x, y)], 0)
+    _ -> ([], t)
 
 
 -- TODO if you need an other game key
