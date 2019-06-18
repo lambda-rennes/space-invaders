@@ -125,28 +125,22 @@ update elapsedTime game' =
    handleInvadersShotsCollisions . 
    handleUpdateInvadersVector .
    handleInvaders .
-   handleSpaceship .
+   handleSpaceshipMovements .
    handleShots .
    handleInvadersShots . 
    handleShipCollision .
    handleUpdateSpaceshipCooldown) game'
-  where handleUpdateSpaceshipCooldown game = game {spaceship = updateSpaceshipCooldown (spaceship game) elapsedTime}
+  where handleUpdateSpaceshipCooldown game = 
+          game {spaceship = updateSpaceshipCooldown (spaceship game) elapsedTime}
         handleInvaders game = game {invaders = moveInvaders (invaders game) a }
           where (a, _, _) = invadersMovements game
         handleUpdateInvadersVector game =
           game
             { invadersMovements = updateInvadersVector (invadersMovements game)}
-        handleSpaceship game@Game {spaceship = Spaceship {direction = MovingLeft}} =
-          game
-            { spaceship = moveSpaceship (spaceship game) ((-1)*spaceshipSpeed) }
-        handleSpaceship game@Game {spaceship = Spaceship {direction = MovingRight}} =
-          game
-            { spaceship = moveSpaceship (spaceship game) (spaceshipSpeed) }
-        handleSpaceship game = game
-
+        handleSpaceshipMovements game = 
+          game {spaceship = updateSpaceshipPosition (spaceship game)}
         handleShots game =
-          game { shots = deleteShots . moveShots $ shots game }
-
+          game { shots = deleteShots $ moveShots $ shots game }
         handleInvadersShotsCollisions game =
           game{ invaders = i, shots = s, score = newScore }
             where (i, s, shotInvs) = collisionShotsInvaders (invaders game) (shots game)
@@ -160,6 +154,15 @@ update elapsedTime game' =
                     case collisionSpaceshipInvadersShots (shots game) (spaceship game) of
                       True -> Dead
                       False -> (gameState game)
+
+updateSpaceshipPosition
+  :: Spaceship
+  -> Spaceship
+updateSpaceshipPosition sp@Spaceship {direction = MovingLeft} =
+  moveSpaceship sp ((-1)*spaceshipSpeed)
+updateSpaceshipPosition sp@Spaceship {direction = MovingRight} =
+  moveSpaceship sp spaceshipSpeed
+updateSpaceshipPosition sp = sp
 
 updateSpaceshipCooldown
   :: Spaceship
