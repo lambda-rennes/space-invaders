@@ -71,7 +71,7 @@ module GlossSpaceInvadersAdapters
     :: Spaceship -- ^ Current spaceship (x,y) position
     -> Gloss.Picture -- ^ Spaceship Image
     -> Gloss.Picture -- ^ Picture of the spaceship placed in the world
-  renderSpaceship (Spaceship (x, y)) shipImg = Gloss.translate x y shipImg
+  renderSpaceship Spaceship {position = (x, y)} shipImg = Gloss.translate x y shipImg
     -- The picture of the spaceship is the corresponding library sprite translated
     -- by the spaceship coordinates.
     

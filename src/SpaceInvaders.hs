@@ -54,7 +54,11 @@ type InvadersVector = (Float, Float)
 -- | Modulo to generate shot
 type ModuloShot = Int
 -- | Spaceship type
-newtype Spaceship = Spaceship Position
+data Spaceship = Spaceship
+  { position :: Position
+  , direction :: SpaceshipDirection
+  , timeSinceLastShot :: ElapsedTime
+  }
 -- | Invader type
 data Invader = Invader 
   { moduloShot :: ModuloShot
@@ -81,29 +85,29 @@ type Score = Int
 data Game = Game
   { spaceship :: Spaceship
   , invaders :: Invaders
-  , spaceshipDirection :: SpaceshipDirection
   , shots :: Shots
   , invadersMovements :: (InvadersVector, TotalOffset, InvadersDirection)
   , gameState :: GameState
   , score :: Score
   , randomGen :: Random.StdGen
-  , timeSinceLastShot :: ElapsedTime
   }
 
 -- | Create the initial game state of the game
 gameInitialState
   :: Game    -- ^ Initial game state
 gameInitialState = Game
-  { spaceship = Spaceship (0, -250)
+  { spaceship = Spaceship 
+    { position = (0, -250)
+    , direction = Stop
+    , timeSinceLastShot = timeBetweenShots
+    } 
   , invaders = createInvaders [1 .. 12]  [(-430+x*130,y) | x <- [0..4], y <- [150,220,290]]  --[3, 7, 2, 5, 9, 10, 7, 6, 3, 9, 6, 9 ]
   --, invaders = createInvaders [(0,0), (100,100)] 
-  , spaceshipDirection = Stop
   , shots = []
   , invadersMovements = ((1,0), 0, Tribord)
   , gameState = Playing
   , score = 0
   , randomGen = Random.mkStdGen 666
-  , timeSinceLastShot = timeBetweenShots
   }
 
 -- *********************** Updating game ************************
@@ -126,16 +130,16 @@ update elapsedTime game' =
    handleInvadersShots . 
    handleShipCollision .
    updateTime) game'
-  where updateTime game = game {timeSinceLastShot = (timeSinceLastShot game) + elapsedTime}
+  where updateTime game = game {spaceship = (spaceship game) { timeSinceLastShot = (timeSinceLastShot (spaceship game)) + elapsedTime }}
         handleInvaders game = game {invaders = moveInvaders (invaders game) a }
           where (a, _, _) = invadersMovements game
         handleUpdateInvadersVector game =
           game
             { invadersMovements = updateInvadersVector (invadersMovements game)}
-        handleSpaceship game@Game {spaceshipDirection = MovingLeft} =
+        handleSpaceship game@Game {spaceship = Spaceship {direction = MovingLeft}} =
           game
             { spaceship = moveSpaceship (spaceship game) ((-1)*spaceshipSpeed) }
-        handleSpaceship game@Game {spaceshipDirection = MovingRight} =
+        handleSpaceship game@Game {spaceship = Spaceship {direction = MovingRight}} =
           game
             { spaceship = moveSpaceship (spaceship game) (spaceshipSpeed) }
         handleSpaceship game = game
@@ -168,17 +172,17 @@ handleActionKeys
   -> Game -- ^ current game state
   -> Game -- ^ Game updated
 handleActionKeys ResetKey _ = gameInitialState
-handleActionKeys LeftKeyDown game@Game {spaceshipDirection = Stop} = game { spaceshipDirection = MovingLeft }
-handleActionKeys RightKeyDown game@Game {spaceshipDirection = Stop} = game { spaceshipDirection = MovingRight }
+handleActionKeys LeftKeyDown game@Game {spaceship = Spaceship{direction = Stop}} = game { spaceship = (spaceship game) {direction = MovingLeft} }
+handleActionKeys RightKeyDown game@Game {spaceship = Spaceship{direction = Stop}} = game { spaceship = (spaceship game) {direction = MovingRight} }
 
-handleActionKeys RightKeyDown game@Game {spaceshipDirection = MovingLeft} = game { spaceshipDirection = MovingRight }
-handleActionKeys LeftKeyUp game@Game {spaceshipDirection = MovingLeft} = game { spaceshipDirection = Stop }
+handleActionKeys RightKeyDown game@Game {spaceship = Spaceship{direction = MovingLeft}} = game { spaceship = (spaceship game) {direction = MovingRight} }
+handleActionKeys LeftKeyUp game@Game {spaceship = Spaceship{direction = MovingLeft}} = game {spaceship = (spaceship game) {direction = Stop}}
 
-handleActionKeys LeftKeyDown game@Game {spaceshipDirection = MovingRight} = game { spaceshipDirection = MovingLeft }
-handleActionKeys RightKeyUp game@Game {spaceshipDirection = MovingRight} = game { spaceshipDirection = Stop }
+handleActionKeys LeftKeyDown game@Game {spaceship = Spaceship{direction = MovingRight}} = game { spaceship = (spaceship game) {direction = MovingLeft} }
+handleActionKeys RightKeyUp game@Game {spaceship = Spaceship{direction = MovingRight}} = game {spaceship = (spaceship game) {direction = Stop}}
 
-handleActionKeys SpaceKeyDown game = game {shots = (shots game) ++ newShot, timeSinceLastShot = newT}
-  where (newShot, newT) = createSpaceshipShot (timeSinceLastShot game) (spaceship game)
+handleActionKeys SpaceKeyDown game = game {shots = (shots game) ++ newShot, spaceship = (spaceship game) { timeSinceLastShot = newT }}
+  where (newShot, newT) = createSpaceshipShot (timeSinceLastShot (spaceship game)) (spaceship game)
 
 handleActionKeys _ game = game
 
@@ -186,7 +190,7 @@ createSpaceshipShot
   :: ElapsedTime
   -> Spaceship
   -> ([Shot], ElapsedTime)
-createSpaceshipShot t (Spaceship (x, y)) =
+createSpaceshipShot t (Spaceship {position = (x, y)}) =
   case t > timeBetweenShots of
     True -> ([SpaceShipShot (x, y)], 0)
     _ -> ([], t)
@@ -214,7 +218,7 @@ moveSpaceship
   -> Float
   -> Spaceship -- ^ Spaceship updated
 
-moveSpaceship (Spaceship (x, y)) step = Spaceship (x + step, y)
+moveSpaceship sp@Spaceship {position = (x, y)} step = sp { position = (x + step, y) }
 -- Hint : implement the function to move spaceship (maybe you need to change the signature)
 
 -- | TODO Move invader.
@@ -310,7 +314,7 @@ collisionSpaceshipShot
   -> Shot
   -> Bool
 collisionSpaceshipShot _ (SpaceShipShot _ ) = False
-collisionSpaceshipShot (Spaceship (x',y')) (InvaderShot (x,y)) = sqrt ((y'- y)**2 + (x' - x)**2) < spaceshipHitboxSize
+collisionSpaceshipShot Spaceship {position = (x',y')} (InvaderShot (x,y)) = sqrt ((y'- y)**2 + (x' - x)**2) < spaceshipHitboxSize
 
 
 controlDeath
