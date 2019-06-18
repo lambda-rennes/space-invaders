@@ -129,8 +129,8 @@ update elapsedTime game' =
    handleShots .
    handleInvadersShots . 
    handleShipCollision .
-   updateTime) game'
-  where updateTime game = game {spaceship = (spaceship game) { timeSinceLastShot = (timeSinceLastShot (spaceship game)) + elapsedTime }}
+   handleUpdateSpaceshipCooldown) game'
+  where handleUpdateSpaceshipCooldown game = game {spaceship = updateSpaceshipCooldown (spaceship game) elapsedTime}
         handleInvaders game = game {invaders = moveInvaders (invaders game) a }
           where (a, _, _) = invadersMovements game
         handleUpdateInvadersVector game =
@@ -161,10 +161,11 @@ update elapsedTime game' =
                       True -> Dead
                       False -> (gameState game)
 
---update _ game = game {invaders = moveInvaders (invaders game) (1,1) }
---update _ game@Game {spaceshipDirection = MovingLeft} = game {shots = moveShots (shots game), spaceship = moveSpaceship (spaceship game) (-10)}
---update _ game@Game {spaceshipDirection = MovingRight} = game {shots = moveShots (shots game), spaceship = moveSpaceship (spaceship game) (10)}
---update _ game@Game {spaceshipDirection = Stop} = game {shots = moveShots (shots game), spaceship = moveSpaceship (spaceship game) (0)}
+updateSpaceshipCooldown
+  :: Spaceship
+  -> ElapsedTime
+  -> Spaceship
+updateSpaceshipCooldown sp@Spaceship { timeSinceLastShot = t} elapsedTime = sp {timeSinceLastShot = t + elapsedTime}
 
 -- | Modify 'Game' state based on GameKeys.
 handleActionKeys
