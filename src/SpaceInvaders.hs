@@ -32,6 +32,7 @@ invaderWidth :: Float
 windowMaxHeight :: Float
 invaderPoints :: Int
 timeBetweenShots :: ElapsedTime
+invincibilityTime :: ElapsedTime
 
 shotSpeed = 7
 spaceshipSpeed = 10
@@ -41,6 +42,7 @@ invaderWidth = 49
 windowMaxHeight = 320
 invaderPoints = 100
 timeBetweenShots = 1
+invincibilityTime = 1
 
 
 -- | Elapsed time alias (seconds since last cycle)
@@ -58,9 +60,11 @@ data Spaceship = Spaceship
   { position :: Position
   , direction :: SpaceshipDirection
   , timeSinceLastShot :: ElapsedTime
+  , lives :: Lives
+  , timeSinceLastHit :: ElapsedTime
   }
 -- | Invader type
-data Invader = Invader 
+data Invader = Invader
   { moduloShot :: ModuloShot
   , positionInvader :: Position
   }
@@ -81,6 +85,8 @@ data GameKey = ResetKey | LeftKeyUp | RightKeyUp | LeftKeyDown | RightKeyDown | 
 data GameState = Playing | Dead | Win
 -- | Score alias
 type Score = Int
+-- | Life counter
+type Lives = Int
 -- | Game record
 data Game = Game
   { spaceship :: Spaceship
@@ -96,13 +102,15 @@ data Game = Game
 gameInitialState
   :: Game    -- ^ Initial game state
 gameInitialState = Game
-  { spaceship = Spaceship 
+  { spaceship = Spaceship
     { position = (0, -250)
     , direction = Stop
     , timeSinceLastShot = timeBetweenShots
-    } 
+    , lives = 2
+    , timeSinceLastHit = invincibilityTime
+    }
   , invaders = createInvaders [1 .. 12]  [(-430+x*130,y) | x <- [0..4], y <- [150,220,290]]  --[3, 7, 2, 5, 9, 10, 7, 6, 3, 9, 6, 9 ]
-  --, invaders = createInvaders [(0,0), (100,100)] 
+  --, invaders = createInvaders [(0,0), (100,100)]
   , shots = []
   , invadersMovements = ((1,0), 0, Tribord)
   , gameState = Playing
@@ -122,25 +130,25 @@ update _ game@Game {gameState = Win} = game
 update elapsedTime game' =
    (controlDeath .
    controlWin .
-   handleInvadersShotsCollisions . 
+   handleInvadersShotsCollisions .
    handleUpdateInvadersVector .
    handleInvaders .
    handleSpaceshipMovements .
    handleShots .
-   handleInvadersShots . 
+   handleInvadersShots .
    handleShipCollision .
-   handleUpdateSpaceshipCooldown) game'
-  where handleUpdateSpaceshipCooldown game = 
-          game {spaceship = updateSpaceshipCooldown (spaceship game) elapsedTime}
+   handleUpdateSpaceshipTimers) game'
+  where handleUpdateSpaceshipTimers game =
+          game {spaceship = updateSpaceshipTimers (spaceship game) elapsedTime}
         handleInvaders game = game {invaders = moveInvaders (invaders game) a }
           where (a, _, _) = invadersMovements game
         handleUpdateInvadersVector game =
           game
             { invadersMovements = updateInvadersVector (invadersMovements game)}
-        handleSpaceshipMovements game = 
+        handleSpaceshipMovements game =
           game {spaceship = updateSpaceshipPosition (spaceship game)}
         handleShots game =
-          game { shots = deleteShots $ moveShots $ shots game }
+          game { shots = deleteShots . moveShots $ shots game }
         handleInvadersShotsCollisions game =
           game{ invaders = i, shots = s, score = newScore }
             where (i, s, shotInvs) = collisionShotsInvaders (invaders game) (shots game)
@@ -148,12 +156,17 @@ update elapsedTime game' =
         handleInvadersShots game =
           game { shots = (shots game) ++ s, randomGen = r }
             where (s, r) = (updateInvadersShots (randomGen game) (invaders game))
-        handleShipCollision game =
-          game { gameState = newGameState}
-            where newGameState = 
-                    case collisionSpaceshipInvadersShots (shots game) (spaceship game) of
-                      True -> Dead
-                      False -> (gameState game)
+        handleShipCollision game@Game { spaceship = Spaceship { timeSinceLastHit = t } }
+          | t > invincibilityTime = game { spaceship = (spaceship game) { lives = newLives, timeSinceLastHit = newTimeSinceLastHit } }
+          | otherwise = game
+            where 
+              isHit = collisionSpaceshipInvadersShots (shots game) (spaceship game)
+              newLives = case isHit of
+                          True -> (lives $ spaceship game) - 1
+                          False -> (lives $ spaceship game)
+              newTimeSinceLastHit = case isHit of
+                                      True -> 0
+                                      False -> t
 
 updateSpaceshipPosition
   :: Spaceship
@@ -164,11 +177,16 @@ updateSpaceshipPosition sp@Spaceship {direction = MovingRight} =
   moveSpaceship sp spaceshipSpeed
 updateSpaceshipPosition sp = sp
 
-updateSpaceshipCooldown
+updateSpaceshipTimers
   :: Spaceship
   -> ElapsedTime
   -> Spaceship
-updateSpaceshipCooldown sp@Spaceship { timeSinceLastShot = t} elapsedTime = sp {timeSinceLastShot = t + elapsedTime}
+updateSpaceshipTimers sp@Spaceship { timeSinceLastShot = t1, timeSinceLastHit = t2} elapsedTime =
+  sp {timeSinceLastShot = newTimeSinceLastShot, timeSinceLastHit = newTimeSinceLastHit}
+    where
+      newTimeSinceLastShot = t1 + elapsedTime
+      newTimeSinceLastHit = t2 + elapsedTime
+
 
 -- | Modify 'Game' state based on GameKeys.
 handleActionKeys
@@ -213,7 +231,7 @@ updateInvadersVector (_, 200, invadersDirection) = ((0, (-80)), 0, inverseDirect
   where inverseDirection :: InvadersDirection -> InvadersDirection
         inverseDirection Tribord = Babord
         inverseDirection Babord = Tribord
-updateInvadersVector (_, totalOffset, Tribord) = ((1, 0), totalOffset + 1, Tribord) 
+updateInvadersVector (_, totalOffset, Tribord) = ((1, 0), totalOffset + 1, Tribord)
 updateInvadersVector (_, totalOffset, Babord) = ((-1, 0), totalOffset + 1, Babord)
 
 -- | TODO Move spaceship.
@@ -245,7 +263,7 @@ moveShots
   -> Shots
 moveShots sshots = fmap (moveShot shotSpeed) sshots
 
-moveShot 
+moveShot
   :: Float
   -> Shot
   -> Shot
@@ -272,7 +290,7 @@ createInvaders
   :: [ModuloShot]
   -> [Position]
   -> Invaders
-createInvaders modulos positions = (<*>) (fmap Invader modulos) positions 
+createInvaders modulos positions = (<*>) (fmap Invader modulos) positions
 
 collisionInvader
   :: Invader
@@ -302,7 +320,7 @@ collisionShotsInvaders
   -> Shots
   -> (Invaders, Shots, Int) -- Int : number of touched invaders
 collisionShotsInvaders invs sshots = (newInvs, newShots, touchedInvs)
-  where 
+  where
     newInvs = filter (\inv -> not $ collisionShotsInvader sshots inv) invs
     newShots = filter (\ss -> not $ collisionInvadersShot invs ss) sshots
     touchedInvs = (length invs) - (length newInvs)
@@ -313,7 +331,7 @@ collisionSpaceshipInvadersShots
   -> Bool
 collisionSpaceshipInvadersShots sshots sspaceship = any (collisionSpaceshipShot sspaceship) sshots
 
-collisionSpaceshipShot 
+collisionSpaceshipShot
   :: Spaceship
   -> Shot
   -> Bool
@@ -324,9 +342,24 @@ collisionSpaceshipShot Spaceship {position = (x',y')} (InvaderShot (x,y)) = sqrt
 controlDeath
   :: Game
   -> Game
-controlDeath game = case any (\Invader{positionInvader = (_, y)} -> y < -240 ) (invaders game) of
-                      True -> game { gameState = Dead }
-                      False -> game
+controlDeath game = game { gameState = newGameState }
+    where
+      newGameState = case (bottomReachByInvaders (invaders game)) || (not $ enoughLives (lives $ spaceship game)) of
+        False -> gameState game
+        True -> Dead
+
+
+bottomReachByInvaders
+  :: Invaders
+  -> Bool
+bottomReachByInvaders = any (\Invader{positionInvader = (_, y)} -> y < -240 )
+
+enoughLives
+  :: Lives
+  -> Bool
+enoughLives l
+  | l > 0 = True
+  | otherwise = False
 
 controlWin
   :: Game
@@ -349,7 +382,7 @@ updateInvadersShots rand invs =
   case invs of
     [] -> ([], rand)
     (firstInv : othersInvs) -> (newList ++ newShot, otherRand)
-      where 
+      where
         (newList , otherRand) = updateInvadersShots newRand othersInvs
         (randomValue::Int, newRand) = Random.randomR (1, 10000) rand
         newShot = case randomValue of
