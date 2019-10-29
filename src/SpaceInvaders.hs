@@ -44,7 +44,7 @@ gameInitialState = Game
   , _invaders = [Invader (0, 250)]
   }
 
-makeLenses ''Game -- ^ needed to access easily to the record attr
+makeLenses ''Game -- needed to access easily to the record attr
 
 -- *********************** Updating game ************************
 

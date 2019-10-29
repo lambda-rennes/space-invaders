@@ -32,12 +32,13 @@ module GlossSpaceInvadersAdapters
     , _invaderImg :: Gloss.Picture
     }
 
-  makeLenses ''ImageLibrary -- ^ needed to access easily to the record attr
+  makeLenses ''ImageLibrary -- needed to access easily to the record attr
 
 
   -- *********************** Rendering *****************************
-  renderGame
   -- | Render the 'Game' into a displayable 'Gloss.Picture'.
+
+  renderGame
     :: ImageLibrary -- ^ ImageLibrary
     -> Game -- ^ The game state to render
     -> Gloss.Picture -- ^ A picture of this game state

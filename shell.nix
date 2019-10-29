@@ -10,11 +10,15 @@ stdenv.mkDerivation {
     libGL
     libGL_driver
     glxinfo
+    git
     freeglut
     zlib
     haskell.compiler.ghc865
     vscode
   ];
+  shellHook = ''
+    export PATH="$PATH:$PWD/bin"
+  '';
   # I wish we could do without this ugly hack.
   LD_LIBRARY_PATH = with pkgs; "${libGL}/lib:${mesa_glu}/lib:${freeglut}/lib";
 }

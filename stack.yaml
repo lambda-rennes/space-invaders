@@ -66,6 +66,6 @@ packages:
 # compiler-check: newer-minor
 
 nix:
-  enable: true
+  enable: false
   pure: false
   packages: [mesa_glu libGL libGL_driver freeglut zlib]
