@@ -2,6 +2,7 @@ module Window
   ( fps
   , background
   , window
+  , winSize
   ) where
 
 import Graphics.Gloss

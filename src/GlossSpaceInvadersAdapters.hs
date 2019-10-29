@@ -40,11 +40,13 @@ module GlossSpaceInvadersAdapters
     [ renderedBkg
     , renderedShip
     , renderedInvaders
+    , renderedProjectiles
     ]
     where
       renderedBkg = renderBackground (backgroundImg imgLib)
       renderedShip = renderSpaceship (spaceship game) (spaceshipImg imgLib)
       renderedInvaders = renderInvaders (invaders game) (invaderImg imgLib)
+      renderedProjectiles = renderProjectiles (projectiles game)
 
   -- | Render the background image into a displayable 'Gloss.Picture'
   renderBackground
@@ -81,6 +83,12 @@ module GlossSpaceInvadersAdapters
     where renderInvaderWithImg = renderInvader img
   -- apply the pictures method to each Invader in Invaders (list of Invader)
 
+  renderProjectiles :: Projectiles -> Gloss.Picture
+  renderProjectiles ps = Gloss.pictures $ fmap renderProjectile ps
+
+  renderProjectile :: Projectile -> Gloss.Picture
+  renderProjectile (Projectile (x, y)) = Gloss.translate x y $ Gloss.Color Gloss.yellow $ Gloss.circleSolid 5
+
 
   -- ***************** TODO (Suggestions only) ******************
 
@@ -113,6 +121,13 @@ module GlossSpaceInvadersAdapters
   -- | Convert game keys to gloss event keys
   fromGlossEvent :: Gloss.Event -> Maybe GameKey
   fromGlossEvent (Gloss.EventKey (Gloss.Char 'r') Gloss.Down _ _) = Just ResetKey
+  fromGlossEvent (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyLeft) Gloss.Down _ _) = Just MoveLeft
+  fromGlossEvent (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyRight) Gloss.Down _ _) = Just MoveRight
+  fromGlossEvent (Gloss.EventKey (Gloss.SpecialKey key) Gloss.Up _ _) = case key of 
+    Gloss.KeyRight -> Just StopMoving
+    Gloss.KeyLeft  -> Just StopMoving
+    _              -> Nothing
+  fromGlossEvent (Gloss.EventKey (Gloss.SpecialKey Gloss.KeySpace) Gloss.Down _ _) = Just Shoot  
   fromGlossEvent _ = Nothing
 
   -- | call domain handleActionKeys function if a key is known
