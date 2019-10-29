@@ -1,5 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 module SpaceInvaders
     ( Game (..)
     , Invaders
@@ -9,12 +7,8 @@ module SpaceInvaders
     , handleActionKeys
     , gameInitialState
     , update
-    , spaceship
-    , invaders
     , moveInvader
     ) where
-
-import Control.Lens
 
 -- *********************** Game domain ****************************
 
@@ -32,19 +26,17 @@ type  Invaders = [Invader]
 data GameKey = ResetKey
 -- | Game record
 data Game = Game
-  { _spaceship :: Spaceship
-  , _invaders :: Invaders
+  { spaceship :: Spaceship
+  , invaders :: Invaders
   }
 
 -- | Create the initial game state of the game
 gameInitialState
   :: Game    -- ^ Initial game state
 gameInitialState = Game
-  { _spaceship = Spaceship (0, -250)
-  , _invaders = [Invader (0, 250)]
+  { spaceship = Spaceship (0, -250)
+  , invaders = [Invader (0, 250)]
   }
-
-makeLenses ''Game -- needed to access easily to the record attr
 
 -- *********************** Updating game ************************
 
@@ -53,10 +45,10 @@ update
   :: ElapsedTime -- ^ Time passed since last update
   -> Game -- ^ Current game state
   -> Game -- ^ Updated game state.
-update _ game = updateInvaders . updateSpaceship $ game
+update _ game@Game {spaceship = sp, invaders = invs} = game {spaceship = updateSpaceship, invaders = updateInvaders}
   where
-    updateSpaceship = over spaceship moveSpaceship
-    updateInvaders = over invaders moveInvaders
+    updateSpaceship = moveSpaceship sp
+    updateInvaders = moveInvaders invs
     -- TODO need to move invaders too...
 
 

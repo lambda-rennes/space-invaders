@@ -1,5 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
-
 module GlossSpaceInvadersAdapters
   ( ImageLibrary(..)
   , renderGame
@@ -13,7 +11,6 @@ module GlossSpaceInvadersAdapters
 
   import SpaceInvaders
 
-  import Control.Lens
 
   import qualified Graphics.Gloss as Gloss
   import qualified Graphics.Gloss.Interface.Pure.Game as Gloss
@@ -27,13 +24,10 @@ module GlossSpaceInvadersAdapters
 
   -- | Image library record
   data ImageLibrary = ImageLibrary
-    { _backgroundImg :: Gloss.Picture
-    , _spaceshipImg :: Gloss.Picture
-    , _invaderImg :: Gloss.Picture
+    { backgroundImg :: Gloss.Picture
+    , spaceshipImg :: Gloss.Picture
+    , invaderImg :: Gloss.Picture
     }
-
-  makeLenses ''ImageLibrary -- needed to access easily to the record attr
-
 
   -- *********************** Rendering *****************************
   -- | Render the 'Game' into a displayable 'Gloss.Picture'.
@@ -48,9 +42,9 @@ module GlossSpaceInvadersAdapters
     , renderedInvaders
     ]
     where
-      renderedBkg = renderBackground (view backgroundImg imgLib)
-      renderedShip = renderSpaceship (view spaceship game) (view spaceshipImg imgLib)
-      renderedInvaders = renderInvaders (view invaders game) (view invaderImg imgLib)
+      renderedBkg = renderBackground (backgroundImg imgLib)
+      renderedShip = renderSpaceship (spaceship game) (spaceshipImg imgLib)
+      renderedInvaders = renderInvaders (invaders game) (invaderImg imgLib)
 
   -- | Render the background image into a displayable 'Gloss.Picture'
   renderBackground

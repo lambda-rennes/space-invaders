@@ -13,9 +13,9 @@ loadLibrary = do
   shipImg <- loadBMP "./assets/images/spaceship_resized2.bmp"
   mstImg <- loadBMP "./assets/images/monster1_resized.bmp"
   return $ ImageLibrary
-    { _backgroundImg = bkgImg
-    , _spaceshipImg = shipImg
-    , _invaderImg = mstImg
+    { backgroundImg = bkgImg
+    , spaceshipImg = shipImg
+    , invaderImg = mstImg
     }
 
 -- | main function
