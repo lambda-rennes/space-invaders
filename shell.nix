@@ -5,7 +5,6 @@ stdenv.mkDerivation {
   name = "build-shell";
   buildInputs = [
     cabal-install
-    stack
     mesa_glu
     libGL
     libGL_driver
