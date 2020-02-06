@@ -15,7 +15,6 @@ stdenv.mkDerivation {
     freeglut
     zlib
     haskell.compiler.ghc865
-    ghcide-nix.ghcide-ghc865
     vscode
   ];
   shellHook = ''
