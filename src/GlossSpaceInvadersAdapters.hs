@@ -38,6 +38,7 @@ module GlossSpaceInvadersAdapters
     -> Gloss.Picture -- ^ A picture of this game state
   renderGame imgLib game = Gloss.pictures
     [ renderedBkg
+    , renderedLasers
     , renderedShip
     , renderedInvaders
     ]
@@ -45,6 +46,7 @@ module GlossSpaceInvadersAdapters
       renderedBkg = renderBackground (backgroundImg imgLib)
       renderedShip = renderSpaceship (spaceship game) (spaceshipImg imgLib)
       renderedInvaders = renderInvaders (invaders game) (invaderImg imgLib)
+      renderedLasers = renderLasers (lasers game)
 
   -- | Render the background image into a displayable 'Gloss.Picture'
   renderBackground
@@ -60,7 +62,7 @@ module GlossSpaceInvadersAdapters
   renderSpaceship (Spaceship (x, y)) shipImg =
     -- The picture of the spaceship is the corresponding library sprite translated
     -- by the spaceship coordinates.
-    Gloss.translate x y $ shipImg
+    Gloss.translate x y shipImg
 
   -- | Render a Invader into a displayable 'Gloss.Picture'
   renderInvader
@@ -70,7 +72,7 @@ module GlossSpaceInvadersAdapters
   renderInvader img (Invader (x, y)) =
     -- The picture of the Invader is the corresponding library sprite translated
     -- by the spaceship coordinates.
-    Gloss.translate x y $ img
+    Gloss.translate x y img
 
   -- | Render multiple Invaders in one go.
   renderInvaders
@@ -81,6 +83,14 @@ module GlossSpaceInvadersAdapters
     where renderInvaderWithImg = renderInvader img
   -- apply the pictures method to each Invader in Invaders (list of Invader)
 
+  --Render a laser list by using map and renderLaser
+  --Gloss.pictures take a list of pictures and join them.
+  renderLasers :: [Laser] -> Gloss.Picture
+  renderLasers lasers = Gloss.pictures $ map renderLaser lasers
+
+  --Render a laser by using a primitive
+  renderLaser :: Laser -> Gloss.Picture
+  renderLaser (Laser (x, y)) = Gloss.translate x y $ Gloss.color Gloss.red $ Gloss.circleSolid 15
 
   -- ***************** TODO (Suggestions only) ******************
 
@@ -113,6 +123,9 @@ module GlossSpaceInvadersAdapters
   -- | Convert game keys to gloss event keys
   fromGlossEvent :: Gloss.Event -> Maybe GameKey
   fromGlossEvent (Gloss.EventKey (Gloss.Char 'r') Gloss.Down _ _) = Just ResetKey
+  fromGlossEvent (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyLeft) Gloss.Down _ _) = Just LeftKey
+  fromGlossEvent (Gloss.EventKey (Gloss.SpecialKey Gloss.KeyRight) Gloss.Down _ _) = Just RightKey
+  fromGlossEvent (Gloss.EventKey (Gloss.SpecialKey Gloss.KeySpace) Gloss.Down _ _) = Just PiouPiou
   fromGlossEvent _ = Nothing
 
   -- | call domain handleActionKeys function if a key is known
