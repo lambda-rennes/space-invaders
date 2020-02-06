@@ -1,15 +1,15 @@
 {
     "ghcide-nix": {
-        "homepage": "https://github.com/digital-asset/ghcide",
-        "url": "https://github.com/hercules-ci/ghcide-nix/archive/f0de6033203963f1b40e2ee38fb60d36873449ac.tar.gz",
-        "owner": "hercules-ci",
         "branch": "master",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz",
-        "repo": "ghcide-nix",
-        "type": "tarball",
-        "sha256": "1n8lbj322219v9y2akavlli0n034yp1mj84j0hw9sa0l3ldzaf1r",
         "description": "Nix installation for ghcide",
-        "rev": "f0de6033203963f1b40e2ee38fb60d36873449ac"
+        "homepage": "https://github.com/digital-asset/ghcide",
+        "owner": "hercules-ci",
+        "repo": "ghcide-nix",
+        "rev": "c940edd61eedba6750671fc142c9422cced73528",
+        "sha256": "01f2x5sgncd468h99w3mpkkb1203akachm12czmiwbvgishf7dwp",
+        "type": "tarball",
+        "url": "https://github.com/hercules-ci/ghcide-nix/archive/c940edd61eedba6750671fc142c9422cced73528.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "niv": {
         "branch": "master",
