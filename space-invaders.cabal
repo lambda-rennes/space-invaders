@@ -1,0 +1,56 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.1.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: f2e935cae89372828516acf078069a939be39a09d5a247c83cf867bea1a26ef0
+
+name:           space-invaders
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/akhesaCaro/space-invaders#readme>
+homepage:       https://github.com/lambda-rennes/space-invaders#readme
+bug-reports:    https://github.com/lambda-rennes/space-invaders/issues
+author:         Meetup Lambda Rennes
+maintainer:     caroline.gaudreau@gmail.com
+copyright:      2018 Meetup Lambda Rennes
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/lambda-rennes/space-invaders
+
+library
+  exposed-modules:
+      GlossSpaceInvadersAdapters
+      SpaceInvaders
+      Window
+  other-modules:
+      Paths_space_invaders
+  hs-source-dirs:
+      src
+  ghc-options: -Wall -Werror -fwarn-tabs -fwarn-incomplete-uni-patterns -fwarn-incomplete-record-updates
+  build-depends:
+      base >=4.7 && <5
+    , gloss
+    , lens
+  default-language: Haskell2010
+
+executable game
+  main-is: Main.hs
+  other-modules:
+      Paths_space_invaders
+  hs-source-dirs:
+      app
+  ghc-options: -Wall -Werror -fwarn-tabs -fwarn-incomplete-uni-patterns -fwarn-incomplete-record-updates -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , gloss
+    , lens
+    , space-invaders
+  default-language: Haskell2010
