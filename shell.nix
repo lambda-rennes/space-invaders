@@ -1,4 +1,4 @@
-with (import ./nix {});
+with (import <nixpkgs> {}); # with (import ./nix {});
 let srcs = import ./nix/sources.nix;
     ghcide-nix = import srcs.ghcide-nix {};
 in
