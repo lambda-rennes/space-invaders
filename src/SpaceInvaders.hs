@@ -3,7 +3,7 @@ module SpaceInvaders
     , Invaders
     , Invader (..)
     , Spaceship (..)
-    , GameKey (..)
+    , GameAction (..)
     , handleActionKeys
     , gameInitialState
     , update
@@ -22,8 +22,8 @@ newtype Spaceship = Spaceship Position
 newtype Invader = Invader Position
 -- | Invader type alias
 type  Invaders = [Invader]
--- | Game possible keys
-data GameKey = ResetKey
+-- | Game possible actions
+data GameAction = ResetAction
 -- | Game record
 data Game = Game
   { spaceship :: Spaceship
@@ -45,21 +45,21 @@ update
   :: ElapsedTime -- ^ Time passed since last update
   -> Game -- ^ Current game state
   -> Game -- ^ Updated game state.
-update _ game@Game {spaceship = sp, invaders = invs} = game {spaceship = updateSpaceship, invaders = updateInvaders}
+update _ game@Game {spaceship = sp, invaders = invs} = game {spaceship = updatedSpaceship, invaders = updatedInvaders}
   where
-    updateSpaceship = moveSpaceship sp
-    updateInvaders = moveInvaders invs
-    -- TODO need to move invaders too...
+    updatedSpaceship = moveSpaceship sp
+    updatedInvaders = moveInvaders invs
+    -- TODO need to move invaders and spaceship...
 
 
--- | Modify 'Game' state based on GameKeys.
+-- | Modify 'Game' state based on GameActions.
 handleActionKeys
-  :: GameKey -- ^ gameKey to handle
+  :: GameAction -- ^ gameAction to handle
   -> Game -- ^ current game state
   -> Game -- ^ Game updated
-handleActionKeys ResetKey _ = gameInitialState
--- TODO if you need an other game key
--- Hint: pattern-match on the GameKey type
+handleActionKeys ResetAction _ = gameInitialState
+-- TODO if you need an other game action
+-- Hint: pattern-match on the GameAction type
 
 
 -- ***************** TODO (Suggestions only) ******************

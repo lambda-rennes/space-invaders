@@ -110,12 +110,12 @@ module GlossSpaceInvadersAdapters
 
   -- ***************************************************************
 
-  -- | Convert game keys to gloss event keys
-  fromGlossEvent :: Gloss.Event -> Maybe GameKey
-  fromGlossEvent (Gloss.EventKey (Gloss.Char 'r') Gloss.Down _ _) = Just ResetKey
+  -- | Convert gloss event keys to game actions
+  fromGlossEvent :: Gloss.Event -> Maybe GameAction
+  fromGlossEvent (Gloss.EventKey (Gloss.Char 'r') Gloss.Down _ _) = Just ResetAction
   fromGlossEvent _ = Nothing
 
   -- | call domain handleActionKeys function if a key is known
-  handleKey :: Maybe GameKey -> Game -> Game
+  handleKey :: Maybe GameAction -> Game -> Game
   handleKey Nothing game = game
   handleKey (Just k) game = handleActionKeys k game
