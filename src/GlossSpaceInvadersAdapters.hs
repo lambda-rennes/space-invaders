@@ -3,7 +3,7 @@ module GlossSpaceInvadersAdapters
   , renderGame
   , fromGlossEvent
   , renderScores
-  , handleKey
+  , mbHandleAction
   , update
     -- Re-exports.
   , module Window
@@ -40,8 +40,10 @@ module GlossSpaceInvadersAdapters
     [ renderedBkg
     , renderedShip
     , renderedInvaders
+    , renderedBullets
     ]
     where
+      renderedBullets = Gloss.pictures $ fmap renderBullet (bullets game)
       renderedBkg = renderBackground (backgroundImg imgLib)
       renderedShip = renderSpaceship (spaceship game) (spaceshipImg imgLib)
       renderedInvaders = renderInvaders (invaders game) (invaderImg imgLib)
@@ -60,7 +62,7 @@ module GlossSpaceInvadersAdapters
   renderSpaceship (Spaceship (x, y)) shipImg =
     -- The picture of the spaceship is the corresponding library sprite translated
     -- by the spaceship coordinates.
-    Gloss.translate x y $ shipImg
+    Gloss.translate x y shipImg
 
   -- | Render a Invader into a displayable 'Gloss.Picture'
   renderInvader
@@ -70,24 +72,27 @@ module GlossSpaceInvadersAdapters
   renderInvader img (Invader (x, y)) =
     -- The picture of the Invader is the corresponding library sprite translated
     -- by the spaceship coordinates.
-    Gloss.translate x y $ img
+    Gloss.translate x y img
 
   -- | Render multiple Invaders in one go.
   renderInvaders
-    :: Invaders -- ^ Invaders positions.
+    :: Invaders
     -> Gloss.Picture -- ^ Invader image
-    -> Gloss.Picture -- ^ Collage picture with all Invaders represented.
+    -> Gloss.Picture -- ^ Collage picture with iall Invaders represented.
   renderInvaders invs img = Gloss.pictures $ fmap renderInvaderWithImg invs
     where renderInvaderWithImg = renderInvader img
   -- apply the pictures method to each Invader in Invaders (list of Invader)
 
+
+  renderBullet :: Bullet -> Gloss.Picture
+  renderBullet (Bullet (x, y)) =  Gloss.translate x y $ Gloss.Color Gloss.red $ Gloss.circleSolid 10   
 
   -- ***************** TODO (Suggestions only) ******************
 
   -- | TODO Render score
   renderScores
     :: Int
-    -> Gloss.Picture
+    -> Gloss.Picture 
   renderScores = undefined
   -- Hint : Use 'renderText' from Gloss.
 
@@ -113,9 +118,12 @@ module GlossSpaceInvadersAdapters
   -- | Convert gloss event keys to game actions
   fromGlossEvent :: Gloss.Event -> Maybe GameAction
   fromGlossEvent (Gloss.EventKey (Gloss.Char 'r') Gloss.Down _ _) = Just ResetAction
+  fromGlossEvent (Gloss.EventKey (Gloss.Char 'q') Gloss.Down _ _) = Just LeftAction
+  fromGlossEvent (Gloss.EventKey (Gloss.Char 'd') Gloss.Down _ _) = Just RightAction
+  fromGlossEvent (Gloss.EventKey (Gloss.Char 'x') Gloss.Down _ _) = Just ShootAction
   fromGlossEvent _ = Nothing
 
-  -- | call domain handleActionKeys function if a key is known
-  handleKey :: Maybe GameAction -> Game -> Game
-  handleKey Nothing game = game
-  handleKey (Just k) game = handleActionKeys k game
+  -- | call domain handleAction function if a key is known
+  mbHandleAction :: Maybe GameAction -> Game -> Game
+  mbHandleAction Nothing game = game
+  mbHandleAction (Just k) game = handleAction k game
